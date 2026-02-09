@@ -5,6 +5,7 @@ import { giveawayEntries, giveawayActions } from "@/db/schema";
 export async function createGiveawayEntry(data: {
 	email: string;
 	subscriberId?: number;
+	source?: string;
 }) {
 	const db = await getDb();
 	const [entry] = await db
@@ -12,6 +13,7 @@ export async function createGiveawayEntry(data: {
 		.values({
 			email: data.email,
 			subscriberId: data.subscriberId ?? null,
+			source: data.source ?? null,
 		})
 		.returning();
 	return entry;

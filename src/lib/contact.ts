@@ -6,11 +6,17 @@ export async function createContactSubmission(data: {
 	name: string;
 	email: string;
 	message: string;
+	source?: string;
 }) {
 	const db = await getDb();
 	const [submission] = await db
 		.insert(contactSubmissions)
-		.values(data)
+		.values({
+			name: data.name,
+			email: data.email,
+			message: data.message,
+			source: data.source ?? null,
+		})
 		.returning();
 	return submission;
 }

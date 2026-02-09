@@ -6,6 +6,7 @@ import { verifyTurnstileToken } from "@/lib/turnstile";
 import { createContactSubmission } from "@/lib/contact";
 import { enqueueEmail } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { sendMetaConversionEvent } from "@/lib/tracking";
 
 export async function POST(request: NextRequest) {
 	if (!siteConfig.features.contact) {
@@ -19,11 +20,12 @@ export async function POST(request: NextRequest) {
 
 	try {
 		const body = await request.json();
-		const { name, email, message, turnstileToken } = body as {
+		const { name, email, message, turnstileToken, source } = body as {
 			name?: string;
 			email?: string;
 			message?: string;
 			turnstileToken?: string;
+			source?: string;
 		};
 
 		if (!name || !email || !message) {
@@ -40,7 +42,7 @@ export async function POST(request: NextRequest) {
 			return apiError("TURNSTILE_FAILED", "Turnstile verification failed");
 		}
 
-		await createContactSubmission({ name, email, message });
+		await createContactSubmission({ name, email, message, source });
 
 		// Queue notification email
 		try {
@@ -52,7 +54,19 @@ export async function POST(request: NextRequest) {
 			// Queue may not be available in local dev
 		}
 
-		return apiSuccess({ success: true }, 201);
+		const eventId = crypto.randomUUID();
+
+		// Fire-and-forget CAPI Lead event
+		sendMetaConversionEvent({
+			eventName: "Lead",
+			eventId,
+			email,
+			sourceUrl: request.url,
+			ip,
+			userAgent: request.headers.get("user-agent") ?? undefined,
+		}).catch(() => {});
+
+		return apiSuccess({ success: true, eventId }, 201);
 	} catch {
 		return apiError("INTERNAL_ERROR", "An unexpected error occurred");
 	}

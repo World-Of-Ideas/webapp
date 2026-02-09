@@ -13,6 +13,7 @@ export const subscribers = sqliteTable("subscribers", {
 	referralCount: integer("referral_count").notNull().default(0),
 	position: integer("position").notNull(),
 	status: text("status").notNull().default("active"), // "active" | "unsubscribed" | "invited"
+	source: text("source"),
 	createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
 
@@ -45,6 +46,7 @@ export const contactSubmissions = sqliteTable("contact_submissions", {
 	name: text("name").notNull(),
 	email: text("email").notNull(),
 	message: text("message").notNull(),
+	source: text("source"),
 	createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
 
@@ -55,6 +57,7 @@ export const giveawayEntries = sqliteTable("giveaway_entries", {
 	email: text("email").notNull().unique(),
 	subscriberId: integer("subscriber_id").references(() => subscribers.id),
 	totalEntries: integer("total_entries").notNull().default(1),
+	source: text("source"),
 	createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
 
@@ -110,3 +113,15 @@ export const adminSessions = sqliteTable(
 	},
 	(table) => [index("idx_sessions_expires").on(table.expiresAt)],
 );
+
+// --- Tracking Settings (single-row config) ---
+
+export const trackingSettings = sqliteTable("tracking_settings", {
+	id: integer("id").primaryKey().default(1),
+	metaPixelEnabled: integer("meta_pixel_enabled", { mode: "boolean" }).notNull().default(false),
+	metaPixelId: text("meta_pixel_id"),
+	metaCapiEnabled: integer("meta_capi_enabled", { mode: "boolean" }).notNull().default(false),
+	metaCapiToken: text("meta_capi_token"),
+	utmTrackingEnabled: integer("utm_tracking_enabled", { mode: "boolean" }).notNull().default(true),
+	updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
+});

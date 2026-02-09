@@ -8,6 +8,7 @@ import { getSubscriberByEmail } from "@/lib/waitlist";
 import { getPageBySlug } from "@/lib/pages";
 import { enqueueEmail } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { sendMetaConversionEvent } from "@/lib/tracking";
 
 export async function POST(request: NextRequest) {
 	if (!siteConfig.features.giveaway) {
@@ -21,9 +22,10 @@ export async function POST(request: NextRequest) {
 
 	try {
 		const body = await request.json();
-		const { email, turnstileToken } = body as {
+		const { email, turnstileToken, source } = body as {
 			email?: string;
 			turnstileToken?: string;
+			source?: string;
 		};
 
 		if (!email) {
@@ -58,6 +60,7 @@ export async function POST(request: NextRequest) {
 		const entry = await createGiveawayEntry({
 			email,
 			subscriberId: subscriber?.id,
+			source,
 		});
 
 		// Queue confirmation email
@@ -70,7 +73,19 @@ export async function POST(request: NextRequest) {
 			// Queue may not be available in local dev
 		}
 
-		return apiSuccess({ entryId: entry.id, totalEntries: entry.totalEntries }, 201);
+		const eventId = crypto.randomUUID();
+
+		// Fire-and-forget CAPI Lead event
+		sendMetaConversionEvent({
+			eventName: "Lead",
+			eventId,
+			email,
+			sourceUrl: request.url,
+			ip,
+			userAgent: request.headers.get("user-agent") ?? undefined,
+		}).catch(() => {});
+
+		return apiSuccess({ entryId: entry.id, totalEntries: entry.totalEntries, eventId }, 201);
 	} catch {
 		return apiError("INTERNAL_ERROR", "An unexpected error occurred");
 	}

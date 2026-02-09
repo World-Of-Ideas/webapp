@@ -67,6 +67,7 @@ export default async function GiveawayPage() {
 							<TableRow>
 								<TableHead>Email</TableHead>
 								<TableHead>Total Entries</TableHead>
+								<TableHead>Source</TableHead>
 								<TableHead>Date</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -78,6 +79,9 @@ export default async function GiveawayPage() {
 									</TableCell>
 									<TableCell>
 										{entry.totalEntries}
+									</TableCell>
+									<TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
+										{entry.source ?? "—"}
 									</TableCell>
 									<TableCell className="text-muted-foreground">
 										{new Date(

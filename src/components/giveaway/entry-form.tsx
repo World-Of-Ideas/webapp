@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Turnstile } from "@/components/shared/turnstile";
+import { getUtmParams } from "@/lib/utm";
 import { ActionCard } from "./action-card";
 
 const GIVEAWAY_ACTIONS = [
@@ -38,15 +39,18 @@ export function EntryForm() {
 		setIsSubmitting(true);
 
 		try {
+			const utm = getUtmParams();
+			const source = utm ? `giveaway-form|${utm}` : "giveaway-form";
+
 			const res = await fetch("/api/giveaway/enter", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email, turnstileToken }),
+				body: JSON.stringify({ email, turnstileToken, source }),
 			});
 
 			const data = (await res.json()) as {
 				error?: { code: string; message: string };
-				data?: { entryId: number; totalEntries: number; existing?: boolean };
+				data?: { entryId: number; totalEntries: number; existing?: boolean; eventId?: string };
 			};
 
 			if (!res.ok) {
@@ -56,6 +60,10 @@ export function EntryForm() {
 					setError(data.error?.message ?? "Something went wrong. Please try again.");
 				}
 				return;
+			}
+
+			if (data.data?.eventId) {
+				window.fbq?.("track", "Lead", {}, { eventID: data.data.eventId });
 			}
 
 			setEntry({

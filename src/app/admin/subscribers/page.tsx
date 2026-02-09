@@ -37,6 +37,7 @@ export default async function SubscribersPage() {
 							<TableHead>Referral Code</TableHead>
 							<TableHead>Referrals</TableHead>
 							<TableHead>Position</TableHead>
+							<TableHead>Source</TableHead>
 							<TableHead>Status</TableHead>
 							<TableHead>Date</TableHead>
 						</TableRow>
@@ -55,6 +56,9 @@ export default async function SubscribersPage() {
 									{subscriber.referralCount}
 								</TableCell>
 								<TableCell>#{subscriber.position}</TableCell>
+								<TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
+									{subscriber.source ?? "—"}
+								</TableCell>
 								<TableCell>
 									<Badge
 										variant={

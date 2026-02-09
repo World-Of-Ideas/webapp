@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Turnstile } from "@/components/shared/turnstile";
+import { getUtmParams } from "@/lib/utm";
 
 export function ContactForm() {
 	const [name, setName] = useState("");
@@ -28,17 +29,24 @@ export function ContactForm() {
 		setIsSubmitting(true);
 
 		try {
+			const utm = getUtmParams();
+			const source = utm ? `contact-form|${utm}` : "contact-form";
+
 			const res = await fetch("/api/contact", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ name, email, message, turnstileToken }),
+				body: JSON.stringify({ name, email, message, turnstileToken, source }),
 			});
 
-			const data = (await res.json()) as { error?: { code: string; message: string } };
+			const data = (await res.json()) as { error?: { code: string; message: string }; data?: { eventId?: string } };
 
 			if (!res.ok) {
 				setError(data.error?.message ?? "Something went wrong. Please try again.");
 				return;
+			}
+
+			if (data.data?.eventId) {
+				window.fbq?.("track", "Lead", {}, { eventID: data.data.eventId });
 			}
 
 			setIsSuccess(true);

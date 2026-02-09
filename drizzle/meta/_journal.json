@@ -8,6 +8,13 @@
       "when": 1770635628056,
       "tag": "0000_bright_stellaris",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1770660580048,
+      "tag": "0001_fancy_george_stacy",
+      "breakpoints": true
     }
   ]
 }

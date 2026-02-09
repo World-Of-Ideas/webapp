@@ -7,6 +7,7 @@ export async function createSubscriber(data: {
 	name: string;
 	referralCode: string;
 	referredBy?: string;
+	source?: string;
 }) {
 	const db = await getDb();
 
@@ -19,6 +20,7 @@ export async function createSubscriber(data: {
 			name: data.name,
 			referralCode: data.referralCode,
 			referredBy: data.referredBy ?? null,
+			source: data.source ?? null,
 			position: sql`(SELECT COALESCE(MAX(${subscribers.position}), 0) + 1 FROM ${subscribers})`,
 		})
 		.returning();

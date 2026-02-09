@@ -7,6 +7,7 @@ import { generateReferralCode } from "@/lib/referral";
 import { createSubscriber, getSubscriberByEmail, incrementReferralCount } from "@/lib/waitlist";
 import { enqueueEmail } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { sendMetaConversionEvent } from "@/lib/tracking";
 
 export async function POST(request: NextRequest) {
 	if (!siteConfig.features.waitlist) {
@@ -20,11 +21,12 @@ export async function POST(request: NextRequest) {
 
 	try {
 		const body = await request.json();
-		const { email, name, turnstileToken, ref } = body as {
+		const { email, name, turnstileToken, ref, source } = body as {
 			email?: string;
 			name?: string;
 			turnstileToken?: string;
 			ref?: string;
+			source?: string;
 		};
 
 		if (!email || !name) {
@@ -53,6 +55,7 @@ export async function POST(request: NextRequest) {
 			name,
 			referralCode,
 			referredBy: ref ?? undefined,
+			source,
 		});
 
 		// If referred, increment referrer's count
@@ -75,7 +78,19 @@ export async function POST(request: NextRequest) {
 			// Queue may not be available in local dev — don't fail the signup
 		}
 
-		return apiSuccess({ referralCode, position: subscriber.position }, 201);
+		const eventId = crypto.randomUUID();
+
+		// Fire-and-forget CAPI Lead event
+		sendMetaConversionEvent({
+			eventName: "Lead",
+			eventId,
+			email,
+			sourceUrl: request.url,
+			ip,
+			userAgent: request.headers.get("user-agent") ?? undefined,
+		}).catch(() => {});
+
+		return apiSuccess({ referralCode, position: subscriber.position, eventId }, 201);
 	} catch {
 		return apiError("INTERNAL_ERROR", "An unexpected error occurred");
 	}

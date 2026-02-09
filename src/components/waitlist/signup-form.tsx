@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Turnstile } from "@/components/shared/turnstile";
+import { getUtmParams } from "@/lib/utm";
 
 interface SignupFormProps {
 	referralCode?: string;
@@ -31,17 +32,24 @@ export function SignupForm({ referralCode }: SignupFormProps) {
 		setIsSubmitting(true);
 
 		try {
+			const utm = getUtmParams();
+			const source = utm ? `waitlist-form|${utm}` : "waitlist-form";
+
 			const res = await fetch("/api/waitlist", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email, name, turnstileToken, ref: referralCode }),
+				body: JSON.stringify({ email, name, turnstileToken, ref: referralCode, source }),
 			});
 
-			const data = (await res.json()) as { error?: { code: string; message: string }; data?: { referralCode: string } };
+			const data = (await res.json()) as { error?: { code: string; message: string }; data?: { referralCode: string; eventId?: string } };
 
 			if (!res.ok) {
 				setError(data.error?.message ?? "Something went wrong. Please try again.");
 				return;
+			}
+
+			if (data.data?.eventId) {
+				window.fbq?.("track", "Lead", {}, { eventID: data.data.eventId });
 			}
 
 			router.push(`/waitlist/${data.data?.referralCode}`);
