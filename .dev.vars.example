@@ -1,0 +1,29 @@
+# Copy this file to .dev.vars and fill in your values
+# These are used by wrangler for local development
+
+# Resend API key for sending emails
+RESEND_API_KEY=re_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Email sender address
+FROM_EMAIL=hello@example.com
+
+# Email address that receives contact form submissions
+CONTACT_EMAIL=team@example.com
+
+# Site URL (no trailing slash)
+SITE_URL=http://localhost:3000
+
+# R2 public URL for assets (no trailing slash)
+R2_PUBLIC_URL=https://pub-placeholder.r2.dev
+
+# Admin password for /admin panel
+ADMIN_PASSWORD=admin123
+
+# Turnstile secret key (always-pass test key for local dev)
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+
+# Secret key for signing unsubscribe tokens (HMAC-SHA256)
+UNSUBSCRIBE_SECRET=dev-secret-change-me
+
+# Environment identifier
+ENVIRONMENT=uat

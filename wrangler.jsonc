@@ -1,7 +1,3 @@
-/**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
- */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "webapp",
@@ -15,5 +11,62 @@
 	"observability": {
 		"enabled": true
 	},
-	"upload_source_maps": true
+	"upload_source_maps": true,
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "webapp-local-db",
+			"database_id": "local",
+			"migrations_dir": "drizzle"
+		}
+	],
+	"r2_buckets": [
+		{ "binding": "ASSETS_BUCKET", "bucket_name": "webapp-local-assets" },
+		{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "webapp-local-cache" }
+	],
+	// NOTE: Queue consumers are configured per environment below, but OpenNext may not
+	// support queue consumers natively. In that case, a thin wrapper worker is needed
+	// to call handleEmailQueue() from src/lib/queue-consumer.ts.
+	"env": {
+		"uat": {
+			"name": "webapp-uat",
+			"vars": { "ENVIRONMENT": "uat" },
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "webapp-uat-db",
+					"database_id": "<from terraform output>",
+					"migrations_dir": "drizzle"
+				}
+			],
+			"r2_buckets": [
+				{ "binding": "ASSETS_BUCKET", "bucket_name": "webapp-uat-assets" },
+				{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "webapp-uat-cache" }
+			],
+			"queues": {
+				"producers": [{ "binding": "EMAIL_QUEUE", "queue": "webapp-uat-email-queue" }],
+				"consumers": [{ "queue": "webapp-uat-email-queue", "dead_letter_queue": "webapp-uat-email-dlq", "max_retries": 3 }]
+			}
+		},
+		"prod": {
+			"name": "webapp",
+			"vars": { "ENVIRONMENT": "prod" },
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "webapp-prod-db",
+					"database_id": "<from terraform output>",
+					"migrations_dir": "drizzle"
+				}
+			],
+			"r2_buckets": [
+				{ "binding": "ASSETS_BUCKET", "bucket_name": "webapp-prod-assets" },
+				{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "webapp-prod-cache" }
+			],
+			"queues": {
+				"producers": [{ "binding": "EMAIL_QUEUE", "queue": "webapp-prod-email-queue" }],
+				"consumers": [{ "queue": "webapp-prod-email-queue", "dead_letter_queue": "webapp-prod-email-dlq", "max_retries": 3 }]
+			}
+		}
+	}
 }

@@ -4,6 +4,24 @@
 declare namespace Cloudflare {
 	interface Env {
 		ASSETS: Fetcher;
+		// D1 Database
+		DB: D1Database;
+		// R2 Buckets
+		ASSETS_BUCKET: R2Bucket;
+		NEXT_INC_CACHE_R2_BUCKET: R2Bucket;
+		// Queues
+		EMAIL_QUEUE: Queue;
+		// Vars (set in wrangler.jsonc per env)
+		ENVIRONMENT: "uat" | "prod";
+		// Secrets (set via wrangler secret put)
+		RESEND_API_KEY: string;
+		FROM_EMAIL: string;
+		CONTACT_EMAIL: string;
+		SITE_URL: string;
+		R2_PUBLIC_URL: string;
+		ADMIN_PASSWORD: string;
+		TURNSTILE_SECRET_KEY: string;
+		UNSUBSCRIBE_SECRET: string;
 	}
 }
 interface CloudflareEnv extends Cloudflare.Env {}
