@@ -8,7 +8,7 @@ test.describe.serial("Pages: full CRUD lifecycle", () => {
 		await page.goto("/admin/pages/new");
 		await page.waitForLoadState("domcontentloaded");
 
-		await page.getByLabel("Title").fill("E2E Guides Page");
+		await page.getByRole("textbox", { name: "Title", exact: true }).fill("E2E Guides Page");
 		await page.getByLabel("Slug").fill(SLUG);
 		await page.getByLabel("Description").fill("A guides page for E2E testing.");
 
@@ -38,8 +38,8 @@ test.describe.serial("Pages: full CRUD lifecycle", () => {
 		await page.getByRole("link", { name: "E2E Guides Page" }).click();
 		await page.waitForURL(`**/admin/pages/${SLUG}/edit`);
 
-		await expect(page.getByLabel("Title")).toHaveValue("E2E Guides Page");
-		await page.getByLabel("Title").fill("E2E Guides (Updated)");
+		await expect(page.getByRole("textbox", { name: "Title", exact: true })).toHaveValue("E2E Guides Page");
+		await page.getByRole("textbox", { name: "Title", exact: true }).fill("E2E Guides (Updated)");
 
 		await page.getByRole("button", { name: "Update Page" }).click();
 		await page.waitForURL("**/admin/pages", { timeout: 10_000 });
@@ -73,7 +73,7 @@ test.describe.serial("Pages: parent-child hierarchy", () => {
 		await page.goto("/admin/pages/new");
 		await page.waitForLoadState("domcontentloaded");
 
-		await page.getByLabel("Title").fill("E2E Parent");
+		await page.getByRole("textbox", { name: "Title", exact: true }).fill("E2E Parent");
 		await page.getByLabel("Slug").fill("e2e-parent");
 		await page.getByLabel("Description").fill("Parent page for hierarchy test.");
 
@@ -110,7 +110,7 @@ test.describe.serial("Pages: parent-child hierarchy", () => {
 
 		await expect(page.getByRole("heading", { name: "E2E Parent", level: 1 })).toBeVisible();
 		await expect(page.getByText("In This Section")).toBeVisible();
-		await expect(page.getByText("E2E Child")).toBeVisible();
+		await expect(page.getByRole("heading", { name: "E2E Child" })).toBeVisible();
 	});
 
 	test("child page accessible", async ({ page }) => {
@@ -128,7 +128,7 @@ test.describe.serial("Pages: FAQs and related pages", () => {
 		await page.goto("/admin/pages/new");
 		await page.waitForLoadState("domcontentloaded");
 
-		await page.getByLabel("Title").fill("E2E Rich Page");
+		await page.getByRole("textbox", { name: "Title", exact: true }).fill("E2E Rich Page");
 		await page.getByLabel("Slug").fill(SLUG);
 		await page.getByLabel("Description").fill("A page with FAQs and related pages.");
 
@@ -143,14 +143,14 @@ test.describe.serial("Pages: FAQs and related pages", () => {
 		await page.getByPlaceholder("Answer to the question...").nth(1).fill("Very useful for testing.");
 
 		// Add Related Page 1
-		await page.getByRole("button", { name: "Add Related Page" }).click();
+		await page.getByRole("button", { name: "Add Custom" }).click();
 		const rp1 = page.locator(".rounded-lg.border.p-4", { hasText: "Related Page 1" });
 		await rp1.getByPlaceholder("Page title").fill("Related One");
 		await rp1.getByPlaceholder("Brief description").fill("First related page.");
 		await rp1.getByPlaceholder("/path/to/page").fill("/blog");
 
 		// Add Related Page 2
-		await page.getByRole("button", { name: "Add Related Page" }).click();
+		await page.getByRole("button", { name: "Add Custom" }).click();
 		const rp2 = page.locator(".rounded-lg.border.p-4", { hasText: "Related Page 2" });
 		await rp2.getByPlaceholder("Page title").fill("Related Two");
 		await rp2.getByPlaceholder("Brief description").fill("Second related page.");
@@ -229,7 +229,7 @@ test.describe("Pages: system page edit", () => {
 		await page.goto("/admin/pages/home/edit");
 		await page.waitForLoadState("domcontentloaded");
 
-		const titleInput = page.getByLabel("Title");
+		const titleInput = page.getByRole("textbox", { name: "Title", exact: true });
 		const originalTitle = await titleInput.inputValue();
 
 		// Change title slightly
@@ -241,7 +241,7 @@ test.describe("Pages: system page edit", () => {
 		// Restore original title
 		await page.getByRole("link", { name: originalTitle + " E2E" }).click();
 		await page.waitForURL("**/admin/pages/home/edit");
-		await page.getByLabel("Title").fill(originalTitle);
+		await page.getByRole("textbox", { name: "Title", exact: true }).fill(originalTitle);
 		await page.getByRole("button", { name: "Update Page" }).click();
 		await page.waitForURL("**/admin/pages", { timeout: 10_000 });
 	});
@@ -253,7 +253,7 @@ test.describe("Pages: error handling", () => {
 		await page.goto("/admin/pages/new");
 		await page.waitForLoadState("domcontentloaded");
 
-		await page.getByLabel("Title").fill("E2E Reserved Slug Test");
+		await page.getByRole("textbox", { name: "Title", exact: true }).fill("E2E Reserved Slug Test");
 		await page.getByLabel("Slug").fill("admin");
 
 		await page.getByRole("button", { name: "Create Page" }).click();
@@ -282,7 +282,7 @@ test.describe("Pages: error handling", () => {
 		await page.goto("/admin/pages/new");
 		await page.waitForLoadState("domcontentloaded");
 
-		await page.getByLabel("Title").fill("E2E Dup Page Attempt");
+		await page.getByRole("textbox", { name: "Title", exact: true }).fill("E2E Dup Page Attempt");
 		await page.getByLabel("Slug").fill("e2e-dup-page");
 
 		await page.getByRole("button", { name: "Create Page" }).click();
