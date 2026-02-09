@@ -64,6 +64,7 @@ export function EntryForm() {
 
 			if (data.data?.eventId) {
 				window.fbq?.("track", "Lead", {}, { eventID: data.data.eventId });
+				window.gtag?.("event", "generate_lead", { event_category: "form", event_label: "giveaway" });
 			}
 
 			setEntry({

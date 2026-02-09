@@ -18,7 +18,14 @@ export default async function TrackingPage() {
 					metaPixelId: settings?.metaPixelId ?? "",
 					metaCapiEnabled: settings?.metaCapiEnabled ?? false,
 					hasCapiToken: !!settings?.metaCapiToken,
+					gaEnabled: settings?.gaEnabled ?? false,
+					gaMeasurementId: settings?.gaMeasurementId ?? "",
+					gaMpEnabled: settings?.gaMpEnabled ?? false,
+					hasGaMpApiSecret: !!settings?.gaMpApiSecret,
+					gtmEnabled: settings?.gtmEnabled ?? false,
+					gtmContainerId: settings?.gtmContainerId ?? "",
 					utmTrackingEnabled: settings?.utmTrackingEnabled ?? true,
+					cookieConsentEnabled: settings?.cookieConsentEnabled ?? false,
 				}}
 			/>
 		</div>

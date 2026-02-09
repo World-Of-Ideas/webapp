@@ -1,0 +1,1 @@
+ALTER TABLE `tracking_settings` ADD `cookie_consent_enabled` integer DEFAULT false NOT NULL;

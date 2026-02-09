@@ -122,6 +122,13 @@ export const trackingSettings = sqliteTable("tracking_settings", {
 	metaPixelId: text("meta_pixel_id"),
 	metaCapiEnabled: integer("meta_capi_enabled", { mode: "boolean" }).notNull().default(false),
 	metaCapiToken: text("meta_capi_token"),
+	gaEnabled: integer("ga_enabled", { mode: "boolean" }).notNull().default(false),
+	gaMeasurementId: text("ga_measurement_id"),
+	gaMpEnabled: integer("ga_mp_enabled", { mode: "boolean" }).notNull().default(false),
+	gaMpApiSecret: text("ga_mp_api_secret"),
+	gtmEnabled: integer("gtm_enabled", { mode: "boolean" }).notNull().default(false),
+	gtmContainerId: text("gtm_container_id"),
 	utmTrackingEnabled: integer("utm_tracking_enabled", { mode: "boolean" }).notNull().default(true),
+	cookieConsentEnabled: integer("cookie_consent_enabled", { mode: "boolean" }).notNull().default(false),
 	updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
 });

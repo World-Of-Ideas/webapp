@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import Script from "next/script";
+import { cookies } from "next/headers";
 import { getTrackingSettings } from "@/lib/tracking";
+import { hasConsent, CONSENT_COOKIE_NAME } from "@/lib/cookies";
 import { MetaPixelPageView } from "./meta-pixel-pageview";
 
 export async function MetaPixel() {
@@ -13,6 +15,14 @@ export async function MetaPixel() {
 	// Validate pixel ID is digits only
 	if (!/^\d+$/.test(settings.metaPixelId)) {
 		return null;
+	}
+
+	if (settings.cookieConsentEnabled) {
+		const cookieStore = await cookies();
+		const consentValue = cookieStore.get(CONSENT_COOKIE_NAME)?.value;
+		if (!hasConsent(true, consentValue, "marketing")) {
+			return null;
+		}
 	}
 
 	const pixelId = settings.metaPixelId;

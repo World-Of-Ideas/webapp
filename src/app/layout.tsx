@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { siteConfig } from "@/config/site";
 import { MetaPixel } from "@/components/shared/meta-pixel";
+import { GoogleAnalytics } from "@/components/shared/google-analytics";
+import { GoogleTagManager } from "@/components/shared/google-tag-manager";
+import { CookieConsent } from "@/components/shared/cookie-consent";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -73,6 +76,9 @@ export default function RootLayout({
 			>
 				{children}
 				<MetaPixel />
+				<GoogleAnalytics />
+				<GoogleTagManager />
+				<CookieConsent />
 			</body>
 		</html>
 	);

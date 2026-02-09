@@ -50,6 +50,7 @@ export function SignupForm({ referralCode }: SignupFormProps) {
 
 			if (data.data?.eventId) {
 				window.fbq?.("track", "Lead", {}, { eventID: data.data.eventId });
+				window.gtag?.("event", "generate_lead", { event_category: "form", event_label: "waitlist" });
 			}
 
 			router.push(`/waitlist/${data.data?.referralCode}`);

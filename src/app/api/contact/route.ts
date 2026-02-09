@@ -6,7 +6,7 @@ import { verifyTurnstileToken } from "@/lib/turnstile";
 import { createContactSubmission } from "@/lib/contact";
 import { enqueueEmail } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { sendMetaConversionEvent } from "@/lib/tracking";
+import { sendMetaConversionEvent, sendGaConversionEvent } from "@/lib/tracking";
 
 export async function POST(request: NextRequest) {
 	if (!siteConfig.features.contact) {
@@ -64,6 +64,13 @@ export async function POST(request: NextRequest) {
 			sourceUrl: request.url,
 			ip,
 			userAgent: request.headers.get("user-agent") ?? undefined,
+		}).catch(() => {});
+
+		// Fire-and-forget GA Measurement Protocol event
+		sendGaConversionEvent({
+			eventName: "generate_lead",
+			email,
+			sourceUrl: request.url,
 		}).catch(() => {});
 
 		return apiSuccess({ success: true, eventId }, 201);

@@ -17,7 +17,14 @@ export async function updateTrackingSettings(data: {
 	metaPixelId?: string | null;
 	metaCapiEnabled?: boolean;
 	metaCapiToken?: string | null;
+	gaEnabled?: boolean;
+	gaMeasurementId?: string | null;
+	gaMpEnabled?: boolean;
+	gaMpApiSecret?: string | null;
+	gtmEnabled?: boolean;
+	gtmContainerId?: string | null;
 	utmTrackingEnabled?: boolean;
+	cookieConsentEnabled?: boolean;
 }) {
 	const db = await getDb();
 
@@ -29,7 +36,14 @@ export async function updateTrackingSettings(data: {
 			metaPixelId: data.metaPixelId ?? null,
 			metaCapiEnabled: data.metaCapiEnabled ?? false,
 			metaCapiToken: data.metaCapiToken ?? null,
+			gaEnabled: data.gaEnabled ?? false,
+			gaMeasurementId: data.gaMeasurementId ?? null,
+			gaMpEnabled: data.gaMpEnabled ?? false,
+			gaMpApiSecret: data.gaMpApiSecret ?? null,
+			gtmEnabled: data.gtmEnabled ?? false,
+			gtmContainerId: data.gtmContainerId ?? null,
 			utmTrackingEnabled: data.utmTrackingEnabled ?? true,
+			cookieConsentEnabled: data.cookieConsentEnabled ?? false,
 			updatedAt: sql`datetime('now')`,
 		})
 		.onConflictDoUpdate({
@@ -39,7 +53,14 @@ export async function updateTrackingSettings(data: {
 				...(data.metaPixelId !== undefined && { metaPixelId: data.metaPixelId }),
 				...(data.metaCapiEnabled !== undefined && { metaCapiEnabled: data.metaCapiEnabled }),
 				...(data.metaCapiToken !== undefined && { metaCapiToken: data.metaCapiToken }),
+				...(data.gaEnabled !== undefined && { gaEnabled: data.gaEnabled }),
+				...(data.gaMeasurementId !== undefined && { gaMeasurementId: data.gaMeasurementId }),
+				...(data.gaMpEnabled !== undefined && { gaMpEnabled: data.gaMpEnabled }),
+				...(data.gaMpApiSecret !== undefined && { gaMpApiSecret: data.gaMpApiSecret }),
+				...(data.gtmEnabled !== undefined && { gtmEnabled: data.gtmEnabled }),
+				...(data.gtmContainerId !== undefined && { gtmContainerId: data.gtmContainerId }),
 				...(data.utmTrackingEnabled !== undefined && { utmTrackingEnabled: data.utmTrackingEnabled }),
+				...(data.cookieConsentEnabled !== undefined && { cookieConsentEnabled: data.cookieConsentEnabled }),
 				updatedAt: sql`datetime('now')`,
 			},
 		});
@@ -109,5 +130,47 @@ export async function sendMetaConversionEvent(params: {
 		clearTimeout(timeout);
 	} catch {
 		// Fire-and-forget: don't let CAPI errors affect the request
+	}
+}
+
+export async function sendGaConversionEvent(params: {
+	eventName: string;
+	email?: string;
+	sourceUrl: string;
+}): Promise<void> {
+	const settings = await getTrackingSettings();
+	if (!settings?.gaMpEnabled || !settings.gaMpApiSecret || !settings.gaMeasurementId) {
+		return;
+	}
+
+	const payload = {
+		client_id: crypto.randomUUID(),
+		events: [
+			{
+				name: params.eventName,
+				params: {
+					source_url: params.sourceUrl,
+				},
+			},
+		],
+	};
+
+	try {
+		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), 5000);
+
+		await fetch(
+			`https://www.google-analytics.com/mp/collect?measurement_id=${settings.gaMeasurementId}&api_secret=${settings.gaMpApiSecret}`,
+			{
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+				signal: controller.signal,
+			},
+		);
+
+		clearTimeout(timeout);
+	} catch {
+		// Fire-and-forget: don't let GA MP errors affect the request
 	}
 }

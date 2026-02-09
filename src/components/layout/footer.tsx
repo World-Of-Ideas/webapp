@@ -2,11 +2,14 @@ import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { footerGroups } from "@/config/navigation";
 import { getPublishedContentPages, isSystemPage } from "@/lib/pages";
+import { getTrackingSettings } from "@/lib/tracking";
+import { CookiePreferencesButton } from "@/components/shared/cookie-preferences-button";
 
 export async function Footer() {
-	const contentPages = (await getPublishedContentPages()).filter(
-		(p) => !isSystemPage(p.slug),
-	);
+	const [contentPages, trackingSettings] = await Promise.all([
+		getPublishedContentPages().then((pages) => pages.filter((p) => !isSystemPage(p.slug))),
+		getTrackingSettings(),
+	]);
 	return (
 		<footer className="border-t">
 			<div className="container mx-auto px-4 py-12">
@@ -88,8 +91,9 @@ export async function Footer() {
 					)}
 				</div>
 
-				<div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
-					&copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
+				<div className="mt-8 flex flex-col items-center gap-2 border-t pt-8 text-center text-sm text-muted-foreground">
+					<span>&copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.</span>
+					{trackingSettings?.cookieConsentEnabled && <CookiePreferencesButton />}
 				</div>
 			</div>
 		</footer>

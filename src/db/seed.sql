@@ -5,7 +5,17 @@
 -- Tracking Settings (single-row config)
 -- ============================================================
 
-INSERT OR REPLACE INTO tracking_settings (id) VALUES (1);
+INSERT OR REPLACE INTO tracking_settings (
+  id, meta_pixel_enabled, meta_pixel_id, meta_capi_enabled, meta_capi_token,
+  ga_enabled, ga_measurement_id, ga_mp_enabled, ga_mp_api_secret,
+  gtm_enabled, gtm_container_id,
+  utm_tracking_enabled, cookie_consent_enabled
+) VALUES (
+  1, 1, '1234567890123456', 1, 'TEST_CAPI_TOKEN_FOR_E2E',
+  1, 'G-TESTDEV001', 1, 'test-mp-api-secret',
+  1, 'GTM-TEST001',
+  1, 0
+);
 
 -- ============================================================
 -- System Pages (7 rows)

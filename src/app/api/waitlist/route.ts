@@ -7,7 +7,7 @@ import { generateReferralCode } from "@/lib/referral";
 import { createSubscriber, getSubscriberByEmail, incrementReferralCount } from "@/lib/waitlist";
 import { enqueueEmail } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { sendMetaConversionEvent } from "@/lib/tracking";
+import { sendMetaConversionEvent, sendGaConversionEvent } from "@/lib/tracking";
 
 export async function POST(request: NextRequest) {
 	if (!siteConfig.features.waitlist) {
@@ -88,6 +88,13 @@ export async function POST(request: NextRequest) {
 			sourceUrl: request.url,
 			ip,
 			userAgent: request.headers.get("user-agent") ?? undefined,
+		}).catch(() => {});
+
+		// Fire-and-forget GA Measurement Protocol event
+		sendGaConversionEvent({
+			eventName: "generate_lead",
+			email,
+			sourceUrl: request.url,
 		}).catch(() => {});
 
 		return apiSuccess({ referralCode, position: subscriber.position, eventId }, 201);

@@ -20,6 +20,7 @@ export default function globalSetup() {
 	run("DELETE FROM subscribers");
 	run("DELETE FROM posts");
 	run("DELETE FROM pages");
+	run("DELETE FROM tracking_settings");
 	run("DELETE FROM sqlite_sequence");
 
 	// Run the full seed script to populate system pages, sample data, etc.
