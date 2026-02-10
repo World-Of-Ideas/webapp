@@ -241,7 +241,7 @@ describe("queue-consumer", () => {
 			await handleEmailQueue(batch, mockEnv);
 
 			expect(sendEmail).not.toHaveBeenCalled();
-			expect(message.ack).toHaveBeenCalled();
+			expect(message.retry).toHaveBeenCalled();
 		});
 	});
 

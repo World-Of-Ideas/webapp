@@ -65,7 +65,7 @@ export default async function AdminLayout({
 					</Link>
 				</div>
 
-				<nav className="flex-1 space-y-1 px-3 py-4">
+				<nav aria-label="Admin navigation" className="flex-1 space-y-1 px-3 py-4">
 					{visibleLinks.map((link) => {
 						const isActive = pathname === link.href;
 						return (

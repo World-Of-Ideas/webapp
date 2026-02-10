@@ -10,7 +10,8 @@ export async function POST() {
 		await deleteSession(sessionId);
 	}
 
-	cookieStore.delete("admin_session");
+	cookieStore.delete({ name: "admin_session", path: "/admin" });
+	cookieStore.delete({ name: "admin_session", path: "/api/admin" });
 
 	return apiSuccess({ success: true });
 }

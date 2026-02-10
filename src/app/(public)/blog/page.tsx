@@ -9,10 +9,10 @@ import { JsonLd } from "@/components/shared/json-ld";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
-		title: `Blog | ${siteConfig.name}`,
+		title: "Blog",
 		description: `Read the latest articles and updates from ${siteConfig.name}.`,
 		openGraph: {
-			title: `Blog | ${siteConfig.name}`,
+			title: "Blog",
 			description: `Read the latest articles and updates from ${siteConfig.name}.`,
 			url: `${siteConfig.url}/blog`,
 			images: [{ url: "/og-default.png", width: 1200, height: 630 }],
@@ -87,7 +87,7 @@ export default async function BlogPage({
 								Previous
 							</Link>
 						) : (
-							<span className="rounded-md border px-4 py-2 text-sm font-medium text-muted-foreground opacity-50">
+							<span aria-disabled="true" className="rounded-md border px-4 py-2 text-sm font-medium text-muted-foreground opacity-50">
 								Previous
 							</span>
 						)}
@@ -104,7 +104,7 @@ export default async function BlogPage({
 								Next
 							</Link>
 						) : (
-							<span className="rounded-md border px-4 py-2 text-sm font-medium text-muted-foreground opacity-50">
+							<span aria-disabled="true" className="rounded-md border px-4 py-2 text-sm font-medium text-muted-foreground opacity-50">
 								Next
 							</span>
 						)}

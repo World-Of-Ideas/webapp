@@ -6,10 +6,10 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
-		title: `Your Waitlist Position | ${siteConfig.name}`,
+		title: "Your Waitlist Position",
 		description: `Track your waitlist position and share your referral link for ${siteConfig.name}.`,
 		openGraph: {
-			title: `Your Waitlist Position | ${siteConfig.name}`,
+			title: "Your Waitlist Position",
 			description: `Track your waitlist position and share your referral link for ${siteConfig.name}.`,
 			url: `${siteConfig.url}/waitlist`,
 		},

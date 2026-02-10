@@ -16,16 +16,21 @@ export async function POST(request: NextRequest) {
 		try { body = await request.json(); } catch { return apiError("VALIDATION_ERROR", "Invalid JSON"); }
 		const { password } = body as { password?: string };
 
-		if (!password) {
-			return apiError("VALIDATION_ERROR", "Password is required");
+		if (!password || typeof password !== "string" || password.length > 1000) {
+			return apiError("VALIDATION_ERROR", "Invalid credentials");
 		}
 
 		const env = await getEnv();
 
+		const adminPw = env.ADMIN_PASSWORD;
+		if (!adminPw || typeof adminPw !== "string") {
+			return apiError("INTERNAL_ERROR", "Server configuration error");
+		}
+
 		// Cleanup expired sessions on each login attempt
 		await cleanupExpiredSessions();
 
-		const isValid = await verifyPassword(password, env.ADMIN_PASSWORD);
+		const isValid = await verifyPassword(password, adminPw);
 		if (!isValid) {
 			return apiError("UNAUTHORIZED", "Invalid password");
 		}

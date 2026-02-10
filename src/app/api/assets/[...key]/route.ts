@@ -28,6 +28,7 @@ export async function GET(
 			"Content-Type":
 				object.httpMetadata?.contentType ?? "application/octet-stream",
 			"Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+			"X-Content-Type-Options": "nosniff",
 		},
 	});
 }

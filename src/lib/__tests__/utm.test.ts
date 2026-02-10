@@ -92,9 +92,9 @@ describe("utm", () => {
 		it("handles UTM params with special characters", () => {
 			setWindowLocation("?utm_source=g%20oogle&utm_medium=c%26pc");
 			const result = getUtmParams();
-			// URLSearchParams decodes the values via .get()
-			expect(result).toContain("utm_source=g oogle");
-			expect(result).toContain("utm_medium=c&pc");
+			// URLSearchParams decodes via .get(), then encodeURIComponent re-encodes
+			expect(result).toContain("utm_source=g%20oogle");
+			expect(result).toContain("utm_medium=c%26pc");
 		});
 	});
 });

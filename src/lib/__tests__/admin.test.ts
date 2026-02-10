@@ -83,7 +83,7 @@ describe("admin", () => {
 				where: eq(adminSessions.id, id),
 			});
 
-			const expiresAt = new Date(session!.expiresAt).getTime();
+			const expiresAt = new Date(session!.expiresAt + "Z").getTime();
 			const twentyFourHours = 24 * 60 * 60 * 1000;
 
 			// expiresAt should be ~24h from now, allowing small timing tolerance

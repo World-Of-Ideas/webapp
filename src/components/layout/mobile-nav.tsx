@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { siteConfig } from "@/config/site";
@@ -24,7 +24,18 @@ export function MobileNav({ links }: MobileNavProps) {
 			</SheetTrigger>
 			<SheetContent side="right">
 				<SheetTitle className="font-bold">{siteConfig.name}</SheetTitle>
-				<nav className="mt-6 flex flex-col gap-4">
+				<nav aria-label="Main navigation" className="mt-6 flex flex-col gap-4">
+					<button
+						type="button"
+						onClick={() => {
+							setOpen(false);
+							document.dispatchEvent(new CustomEvent("open-search"));
+						}}
+						className="flex items-center gap-2 text-lg font-medium text-muted-foreground transition-colors hover:text-foreground"
+					>
+						<Search className="h-4 w-4" />
+						Search
+					</button>
 					{links.map((link) => (
 						<Link
 							key={link.href}

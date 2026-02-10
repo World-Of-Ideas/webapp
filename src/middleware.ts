@@ -13,7 +13,8 @@ export function middleware(request: NextRequest) {
 
 	if (isAdminPage || isAdminApi) {
 		const sessionCookie = request.cookies.get("admin_session");
-		if (!sessionCookie?.value) {
+		const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+		if (!sessionCookie?.value || !UUID_RE.test(sessionCookie.value)) {
 			if (isAdminApi) {
 				return NextResponse.json({ error: "UNAUTHORIZED", message: "Not authenticated" }, { status: 401 });
 			}

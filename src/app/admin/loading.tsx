@@ -1,6 +1,7 @@
 export default function AdminLoading() {
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6" role="status">
+			<span className="sr-only">Loading...</span>
 			{/* Title skeleton */}
 			<div className="h-8 w-48 animate-pulse rounded-md bg-muted" />
 

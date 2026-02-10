@@ -10,7 +10,7 @@ export async function createSession(): Promise<string> {
 
 	await db.insert(adminSessions).values({
 		id,
-		expiresAt: expiresAt.toISOString(),
+		expiresAt: expiresAt.toISOString().replace("T", " ").replace(/\.\d{3}Z$/, ""),
 	});
 
 	return id;
@@ -38,7 +38,7 @@ export async function validateSession(sessionId: string): Promise<boolean> {
 	}
 
 	// Extend session TTL on successful validation (sliding window)
-	const newExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+	const newExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().replace("T", " ").replace(/\.\d{3}Z$/, "");
 	await db
 		.update(adminSessions)
 		.set({ expiresAt: newExpiry })

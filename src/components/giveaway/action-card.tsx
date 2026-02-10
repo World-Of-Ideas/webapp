@@ -67,6 +67,7 @@ export function ActionCard({
 				{isCompleted ? (
 					<div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-500 text-white">
 						<Check className="h-4 w-4" />
+						<span className="sr-only">Completed</span>
 					</div>
 				) : (
 					<Button

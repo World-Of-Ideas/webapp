@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { cleanTables } from "../../../test/helpers";
 import {
 	createSubscriber,
+	createSubscriberWithReferral,
 	getSubscriberByEmail,
 	getSubscriberByReferralCode,
 	incrementReferralCount,
@@ -100,6 +101,45 @@ describe("waitlist (integration)", () => {
 
 			const sub = await getSubscriberByEmail("alice@test.com");
 			expect(sub?.status).toBe("unsubscribed");
+		});
+	});
+
+	describe("createSubscriberWithReferral", () => {
+		it("creates subscriber with referral and increments referrer's referralCount", async () => {
+			const referrer = await createSubscriber({
+				email: "referrer@test.com",
+				name: "Referrer",
+				referralCode: "ref001",
+			});
+			expect(referrer.referralCount).toBe(0);
+
+			const referred = await createSubscriberWithReferral({
+				email: "referred@test.com",
+				name: "Referred",
+				referralCode: "ref002",
+				referredBy: "ref001",
+			});
+
+			expect(referred.email).toBe("referred@test.com");
+			expect(referred.referredBy).toBe("ref001");
+
+			const updatedReferrer = await getSubscriberByReferralCode("ref001");
+			expect(updatedReferrer?.referralCount).toBe(1);
+		});
+
+		it("creates subscriber even if referredBy code doesn't match any existing subscriber", async () => {
+			const sub = await createSubscriberWithReferral({
+				email: "orphan@test.com",
+				name: "Orphan",
+				referralCode: "orph01",
+				referredBy: "nonexistent-code",
+			});
+
+			expect(sub.email).toBe("orphan@test.com");
+			expect(sub.referredBy).toBe("nonexistent-code");
+
+			const found = await getSubscriberByEmail("orphan@test.com");
+			expect(found).toBeDefined();
 		});
 	});
 

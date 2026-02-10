@@ -28,10 +28,11 @@ const nextConfig: NextConfig = {
 							"img-src 'self' data: https://*.r2.dev https://www.facebook.com",
 							"font-src 'self'",
 							"connect-src 'self' https://challenges.cloudflare.com https://www.google-analytics.com https://www.facebook.com https://connect.facebook.net https://www.googletagmanager.com",
-							"frame-src https://challenges.cloudflare.com",
+							"frame-src https://challenges.cloudflare.com https://www.googletagmanager.com",
 							"object-src 'none'",
 							"base-uri 'self'",
-							"form-action 'self'",
+							"upgrade-insecure-requests",
+						"form-action 'self'",
 						].join("; "),
 					},
 					{

@@ -30,11 +30,16 @@ export async function POST(request: NextRequest) {
 			return apiError("VALIDATION_ERROR", "File content does not match declared type");
 		}
 
+		const ALLOWED_UPLOAD_PREFIXES = ["blog/", "uploads/", "og/"];
+
 		let key: string;
 		if (path) {
 			const pathError = validateR2Path(path);
 			if (pathError) {
 				return apiError("VALIDATION_ERROR", pathError);
+			}
+			if (!ALLOWED_UPLOAD_PREFIXES.some((p) => path.startsWith(p))) {
+				return apiError("VALIDATION_ERROR", "Upload path must start with blog/, uploads/, or og/");
 			}
 			key = path;
 		} else {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateUpload, normalizeImageSrc } from "../r2";
+import { validateUpload, normalizeImageSrc, validateMagicBytes } from "../r2";
 
 describe("validateUpload", () => {
 	it("accepts image/webp files", () => {
@@ -65,6 +65,45 @@ describe("validateUpload", () => {
 		const file = new File(["data"], "noext", { type: "" });
 		const error = validateUpload(file);
 		expect(error).toBe("Invalid file type. Only WebP, PNG, JPEG, and GIF are allowed.");
+	});
+});
+
+describe("validateMagicBytes", () => {
+	it("returns true for valid PNG magic bytes with image/png type", () => {
+		const buffer = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x00, 0x00]).buffer;
+		expect(validateMagicBytes(buffer, "image/png")).toBe(true);
+	});
+
+	it("returns true for valid JPEG magic bytes with image/jpeg type", () => {
+		const buffer = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00]).buffer;
+		expect(validateMagicBytes(buffer, "image/jpeg")).toBe(true);
+	});
+
+	it("returns true for valid GIF magic bytes with image/gif type", () => {
+		const buffer = new Uint8Array([0x47, 0x49, 0x46, 0x38, 0x39]).buffer;
+		expect(validateMagicBytes(buffer, "image/gif")).toBe(true);
+	});
+
+	it("returns true for valid WebP magic bytes with image/webp type", () => {
+		// WebP starts with RIFF header: [0x52, 0x49, 0x46, 0x46]
+		const buffer = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50]).buffer;
+		expect(validateMagicBytes(buffer, "image/webp")).toBe(true);
+	});
+
+	it("returns false for mismatched MIME type and magic bytes", () => {
+		// PNG magic bytes but claiming JPEG
+		const buffer = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x00, 0x00]).buffer;
+		expect(validateMagicBytes(buffer, "image/jpeg")).toBe(false);
+	});
+
+	it("returns false for buffer shorter than required bytes", () => {
+		const buffer = new Uint8Array([0x89, 0x50]).buffer;
+		expect(validateMagicBytes(buffer, "image/png")).toBe(false);
+	});
+
+	it("returns false for unknown MIME type", () => {
+		const buffer = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x00, 0x00]).buffer;
+		expect(validateMagicBytes(buffer, "application/pdf")).toBe(false);
 	});
 });
 

@@ -4,6 +4,6 @@ export function getUtmParams(): string {
 	const keys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"];
 	return keys
 		.filter((k) => params.has(k))
-		.map((k) => `${k}=${params.get(k)}`)
+		.map((k) => `${k}=${encodeURIComponent(params.get(k)!)}`)
 		.join("&");
 }

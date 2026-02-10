@@ -91,11 +91,16 @@ describe("blog (integration)", () => {
 	});
 
 	describe("deletePost", () => {
-		it("removes the post", async () => {
+		it("removes the post and returns its slug", async () => {
 			const post = await createPost({ slug: "to-delete", title: "Delete Me", description: "d", content: [] });
-			await deletePost(post.id);
+			const slug = await deletePost(post.id);
+			expect(slug).toBe("to-delete");
 			const found = await getPostBySlug("to-delete");
 			expect(found).toBeUndefined();
+		});
+
+		it("returns null for non-existent post", async () => {
+			expect(await deletePost(99999)).toBeNull();
 		});
 	});
 

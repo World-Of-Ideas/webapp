@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // vi.hoisted runs before vi.mock hoisting — safe to reference in factory
 const { mockCookieStore, mockValidateSession } = vi.hoisted(() => {
@@ -20,6 +20,10 @@ vi.mock("@/lib/admin", () => ({
 import { requireAdminSession } from "../admin-auth";
 
 describe("requireAdminSession", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
 	it("returns false when no admin_session cookie is present", async () => {
 		mockCookieStore.get.mockReturnValue(undefined);
 		const result = await requireAdminSession();

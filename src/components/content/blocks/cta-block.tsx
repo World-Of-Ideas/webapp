@@ -34,17 +34,17 @@ export function CtaBlock({ block }: CtaBlockProps) {
 			<div className="flex flex-wrap justify-center gap-3">
 				{appUrl && (
 					<Button asChild>
-						<Link href={appUrl}>Try {siteConfig.name}</Link>
+						<a href={appUrl} target="_blank" rel="noopener noreferrer">Try {siteConfig.name}</a>
 					</Button>
 				)}
 				{appStoreUrl && (
 					<Button variant="outline" asChild>
-						<Link href={appStoreUrl}>App Store</Link>
+						<a href={appStoreUrl} target="_blank" rel="noopener noreferrer">App Store</a>
 					</Button>
 				)}
 				{playStoreUrl && (
 					<Button variant="outline" asChild>
-						<Link href={playStoreUrl}>Google Play</Link>
+						<a href={playStoreUrl} target="_blank" rel="noopener noreferrer">Google Play</a>
 					</Button>
 				)}
 			</div>

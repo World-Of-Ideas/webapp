@@ -31,7 +31,7 @@ export function PostCard({ post }: PostCardProps) {
 					<div className="relative aspect-[16/9] overflow-hidden">
 						<Image
 							src={normalizeImageSrc(post.coverImage)}
-							alt={post.title}
+							alt=""
 							fill
 							className="object-cover transition-transform group-hover:scale-105"
 							sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

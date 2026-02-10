@@ -1,6 +1,7 @@
 export default function BlogLoading() {
 	return (
-		<div className="mx-auto max-w-5xl px-6 py-16">
+		<div className="mx-auto max-w-5xl px-6 py-16" role="status">
+			<span className="sr-only">Loading...</span>
 			{/* Title skeleton */}
 			<div className="h-9 w-32 animate-pulse rounded-md bg-muted" />
 			<div className="mt-2 h-5 w-64 animate-pulse rounded-md bg-muted" />

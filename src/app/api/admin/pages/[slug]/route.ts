@@ -19,6 +19,10 @@ export async function PUT(
 		if (bodyError) return apiError("VALIDATION_ERROR", bodyError);
 		// Strip slug from body — slug is the PK and must not be changed via update
 		const { slug: _ignoredSlug, ...safeBody } = body as Record<string, unknown>;
+
+		if (isSystemPage(slug) && (safeBody as Record<string, unknown>).published === false) {
+			return apiError("VALIDATION_ERROR", "System pages cannot be unpublished");
+		}
 		const page = await updatePage(slug, safeBody as Parameters<typeof updatePage>[1]);
 		return apiSuccess(page);
 	} catch {

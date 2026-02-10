@@ -2,20 +2,18 @@ import { describe, it, expect } from "vitest";
 import { generateReferralCode, calculateEffectivePosition } from "../referral";
 
 describe("generateReferralCode", () => {
-	it("returns an 8-character string", async () => {
-		const code = await generateReferralCode();
+	it("returns an 8-character string", () => {
+		const code = generateReferralCode();
 		expect(code).toHaveLength(8);
 	});
 
-	it("returns alphanumeric characters", async () => {
-		const code = await generateReferralCode();
+	it("returns alphanumeric characters", () => {
+		const code = generateReferralCode();
 		expect(code).toMatch(/^[a-z0-9]+$/);
 	});
 
-	it("generates unique codes across calls", async () => {
-		const codes = await Promise.all(
-			Array.from({ length: 10 }, () => generateReferralCode()),
-		);
+	it("generates unique codes across calls", () => {
+		const codes = Array.from({ length: 10 }, () => generateReferralCode());
 		const unique = new Set(codes);
 		expect(unique.size).toBe(10);
 	});

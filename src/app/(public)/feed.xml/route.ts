@@ -30,8 +30,8 @@ ${posts
 	.map(
 		(post) => `  <entry>
     <title>${escapeXml(post.title)}</title>
-    <link href="${baseUrl}/blog/${post.slug}" rel="alternate" type="text/html"/>
-    <id>${baseUrl}/blog/${post.slug}</id>
+    <link href="${baseUrl}/blog/${escapeXml(post.slug)}" rel="alternate" type="text/html"/>
+    <id>${baseUrl}/blog/${escapeXml(post.slug)}</id>
     <published>${post.publishedAt ?? post.createdAt}</published>
     <updated>${post.updatedAt}</updated>
     <summary>${escapeXml(post.description)}</summary>

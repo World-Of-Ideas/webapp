@@ -12,10 +12,10 @@ import type { FAQ, RelatedPage } from "@/types/content";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
-		title: `Contact | ${siteConfig.name}`,
+		title: "Contact",
 		description: `Get in touch with the ${siteConfig.name} team. We'd love to hear from you.`,
 		openGraph: {
-			title: `Contact | ${siteConfig.name}`,
+			title: "Contact",
 			description: `Get in touch with the ${siteConfig.name} team.`,
 			url: `${siteConfig.url}/contact`,
 		},

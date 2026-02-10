@@ -10,10 +10,10 @@ import type { FAQ, RelatedPage } from "@/types/content";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
-		title: `Terms of Use | ${siteConfig.name}`,
+		title: "Terms of Use",
 		description: `Terms of use for ${siteConfig.name}.`,
 		openGraph: {
-			title: `Terms of Use | ${siteConfig.name}`,
+			title: "Terms of Use",
 			description: `Terms of use for ${siteConfig.name}.`,
 			url: `${siteConfig.url}/terms`,
 		},

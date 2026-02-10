@@ -14,7 +14,7 @@ export function ImageBlock({ block }: ImageBlockProps) {
 		<figure>
 			<Image
 				src={normalizeImageSrc(block.image)}
-				alt={block.alt || "Blog image"}
+				alt={block.alt || ""}
 				width={1200}
 				height={675}
 				className="w-full h-auto rounded-lg"

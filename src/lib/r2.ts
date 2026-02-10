@@ -45,7 +45,7 @@ export async function uploadToR2(
 }
 
 export function getPublicUrl(r2PublicUrl: string, key: string): string {
-	return `${r2PublicUrl}/${key}`;
+	return `${r2PublicUrl.replace(/\/$/, "")}/${key}`;
 }
 
 /** Strip localhost origin from image URLs so next/image treats them as local paths */

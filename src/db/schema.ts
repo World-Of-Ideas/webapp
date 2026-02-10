@@ -4,18 +4,25 @@ import type { ContentBlock, FAQ, RelatedPage } from "@/types/content";
 
 // --- Subscribers (Waiting List) ---
 
-export const subscribers = sqliteTable("subscribers", {
-	id: integer("id").primaryKey({ autoIncrement: true }),
-	email: text("email").notNull().unique(),
-	name: text("name").notNull(),
-	referralCode: text("referral_code").notNull().unique(),
-	referredBy: text("referred_by"),
-	referralCount: integer("referral_count").notNull().default(0),
-	position: integer("position").notNull(),
-	status: text("status").notNull().default("active"), // "active" | "unsubscribed" | "invited"
-	source: text("source"),
-	createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
-});
+export const subscribers = sqliteTable(
+	"subscribers",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		email: text("email").notNull().unique(),
+		name: text("name").notNull(),
+		referralCode: text("referral_code").notNull().unique(),
+		referredBy: text("referred_by"),
+		referralCount: integer("referral_count").notNull().default(0),
+		position: integer("position").notNull(),
+		status: text("status").notNull().default("active"), // "active" | "unsubscribed" | "invited"
+		source: text("source"),
+		createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+	},
+	(table) => [
+		index("idx_subscribers_status").on(table.status),
+		index("idx_subscribers_position").on(table.position),
+	],
+);
 
 // --- Posts (Blog) ---
 
@@ -44,14 +51,20 @@ export const posts = sqliteTable(
 
 // --- Contact Submissions ---
 
-export const contactSubmissions = sqliteTable("contact_submissions", {
-	id: integer("id").primaryKey({ autoIncrement: true }),
-	name: text("name").notNull(),
-	email: text("email").notNull(),
-	message: text("message").notNull(),
-	source: text("source"),
-	createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
-});
+export const contactSubmissions = sqliteTable(
+	"contact_submissions",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		name: text("name").notNull(),
+		email: text("email").notNull(),
+		message: text("message").notNull(),
+		source: text("source"),
+		createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+	},
+	(table) => [
+		index("idx_contact_created").on(table.createdAt),
+	],
+);
 
 // --- Giveaway Entries ---
 

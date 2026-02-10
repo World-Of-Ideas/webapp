@@ -136,7 +136,7 @@ export default async function BlogPostPage({
 				{post.coverImage && isSafeUrl(post.coverImage) && (
 					<Image
 						src={normalizeImageSrc(post.coverImage)}
-						alt={post.title}
+						alt=""
 						width={1200}
 						height={675}
 						className="mt-8 w-full h-auto rounded-lg object-cover"

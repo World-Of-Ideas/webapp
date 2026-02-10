@@ -88,6 +88,7 @@ export function ImageUpload({ value, onChange, path }: ImageUploadProps) {
 					onChange={handleFileChange}
 					disabled={isUploading}
 					className="flex-1"
+					aria-label="Upload image"
 				/>
 				{isUploading && (
 					<span className="text-sm text-muted-foreground">Uploading...</span>

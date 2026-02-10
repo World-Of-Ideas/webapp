@@ -13,10 +13,10 @@ import type { FAQ, RelatedPage } from "@/types/content";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
-		title: `Giveaway | ${siteConfig.name}`,
+		title: "Giveaway",
 		description: `Enter the ${siteConfig.name} giveaway for a chance to win.`,
 		openGraph: {
-			title: `Giveaway | ${siteConfig.name}`,
+			title: "Giveaway",
 			description: `Enter the ${siteConfig.name} giveaway for a chance to win.`,
 			url: `${siteConfig.url}/giveaway`,
 		},

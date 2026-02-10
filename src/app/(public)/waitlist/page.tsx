@@ -12,10 +12,10 @@ import type { FAQ, RelatedPage } from "@/types/content";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
-		title: `Join the Waitlist | ${siteConfig.name}`,
+		title: "Join the Waitlist",
 		description: `Sign up for early access to ${siteConfig.name}. Be the first to know when we launch.`,
 		openGraph: {
-			title: `Join the Waitlist | ${siteConfig.name}`,
+			title: "Join the Waitlist",
 			description: `Sign up for early access to ${siteConfig.name}.`,
 			url: `${siteConfig.url}/waitlist`,
 		},

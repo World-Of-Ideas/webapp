@@ -14,7 +14,7 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import type { FAQ, RelatedPage } from "@/types/content";
 
 export const metadata: Metadata = {
-	title: siteConfig.name,
+	title: { absolute: siteConfig.name },
 	description: siteConfig.description,
 	openGraph: {
 		title: siteConfig.name,

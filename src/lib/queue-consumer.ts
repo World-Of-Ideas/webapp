@@ -71,19 +71,25 @@ export async function handleEmailQueue(
 					break;
 
 				case "contact_receipt": {
+					const rawName = job.payload.name.replace(/[\r\n\t]/g, " ");
 					const name = escapeHtml(job.payload.name);
 					const email = escapeHtml(job.payload.email);
 					const msg = escapeHtml(job.payload.message);
 					await sendEmail(env.RESEND_API_KEY, {
 						from: env.FROM_EMAIL,
 						to: env.CONTACT_EMAIL,
-						subject: `New contact form submission from ${name}`,
+						subject: `New contact form submission from ${rawName}`,
 						html: `<p><strong>From:</strong> ${name} (${email})</p>
 <p><strong>Message:</strong></p>
 <p>${msg}</p>`,
 					});
 					break;
 				}
+
+				default:
+					console.error(`Unknown email job type: ${(job as { type: string }).type}`);
+					message.retry();
+					continue;
 			}
 
 			message.ack();

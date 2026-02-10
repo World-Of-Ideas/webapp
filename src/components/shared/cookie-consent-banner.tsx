@@ -69,7 +69,7 @@ export function CookieConsentBanner({ categories, currentConsent }: CookieConsen
 	if (!visible) return null;
 
 	return (
-		<div className="fixed inset-x-0 bottom-0 z-[100] border-t bg-background shadow-lg" aria-label="Cookie consent" role="dialog">
+		<div className="fixed inset-x-0 bottom-0 z-[100] border-t bg-background shadow-lg" aria-label="Cookie consent" role="region">
 			<div className="container mx-auto px-4 py-4">
 				{!expanded ? (
 					<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -100,12 +100,12 @@ export function CookieConsentBanner({ categories, currentConsent }: CookieConsen
 						<div className="space-y-3">
 							<div className="flex items-center justify-between rounded-lg border p-3">
 								<div>
-									<Label className="font-medium">Necessary</Label>
+									<Label htmlFor="consent-necessary" className="font-medium">Necessary</Label>
 									<p className="text-xs text-muted-foreground">
 										Essential for the site to function. Cannot be disabled.
 									</p>
 								</div>
-								<Switch checked disabled />
+								<Switch id="consent-necessary" checked disabled />
 							</div>
 
 							{categories.map((cat) => (

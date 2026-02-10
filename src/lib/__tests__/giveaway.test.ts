@@ -13,4 +13,8 @@ describe("isGiveawayEnded", () => {
 	it("returns false for a future date", () => {
 		expect(isGiveawayEnded("2099-12-31")).toBe(false);
 	});
+
+	it("returns false for an invalid date string", () => {
+		expect(isGiveawayEnded("not-a-date")).toBe(false);
+	});
 });

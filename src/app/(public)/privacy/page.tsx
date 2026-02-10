@@ -10,10 +10,10 @@ import type { FAQ, RelatedPage } from "@/types/content";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
-		title: `Privacy Policy | ${siteConfig.name}`,
+		title: "Privacy Policy",
 		description: `Privacy policy for ${siteConfig.name}.`,
 		openGraph: {
-			title: `Privacy Policy | ${siteConfig.name}`,
+			title: "Privacy Policy",
 			description: `Privacy policy for ${siteConfig.name}.`,
 			url: `${siteConfig.url}/privacy`,
 		},

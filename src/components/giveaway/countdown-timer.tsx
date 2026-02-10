@@ -60,7 +60,7 @@ export function CountdownTimer({ endDate }: CountdownTimerProps) {
 	];
 
 	return (
-		<div className="flex justify-center gap-3" role="timer" aria-live="polite">
+		<div className="flex justify-center gap-3" role="timer">
 			{segments.map((segment) => (
 				<div
 					key={segment.label}
