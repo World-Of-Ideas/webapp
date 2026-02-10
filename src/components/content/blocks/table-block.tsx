@@ -9,7 +9,7 @@ export function TableBlock({ block }: TableBlockProps) {
 
 	return (
 		<div className="not-prose my-6 overflow-x-auto">
-			<table className="w-full border-collapse text-sm">
+			<table className="w-full border-collapse text-sm" aria-label="Data table">
 				<thead>
 					<tr className="border-b">
 						{block.headers.map((header, i) => (

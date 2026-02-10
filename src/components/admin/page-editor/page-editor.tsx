@@ -227,11 +227,12 @@ export function PageEditor({ page, isSystem, availableParentSlugs = [], existing
 
 			<div className="flex items-center gap-3">
 				<Switch
+					id="page-published"
 					checked={published}
 					onCheckedChange={setPublished}
 					disabled={isSaving}
 				/>
-				<Label>Published</Label>
+				<Label htmlFor="page-published">Published</Label>
 			</div>
 
 			{/* SEO Settings */}
@@ -301,7 +302,7 @@ export function PageEditor({ page, isSystem, availableParentSlugs = [], existing
 			)}
 
 			{error && (
-				<p className="text-sm text-destructive">{error}</p>
+				<p className="text-sm text-destructive" role="alert">{error}</p>
 			)}
 
 			<Button type="submit" disabled={isSaving}>

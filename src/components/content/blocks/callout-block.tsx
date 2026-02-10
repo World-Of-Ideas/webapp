@@ -24,6 +24,7 @@ export function CalloutBlock({ block }: CalloutBlockProps) {
 
 	return (
 		<div
+			role="note"
 			className={cn(
 				"not-prose my-6 rounded-lg border-l-4 p-4",
 				variantStyles[variant],

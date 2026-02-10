@@ -4,14 +4,15 @@ import { siteConfig } from "@/config/site";
 import { apiSuccess, apiError, getClientIp } from "@/lib/api";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { generateReferralCode } from "@/lib/referral";
-import { createSubscriber, getSubscriberByEmail, incrementReferralCount } from "@/lib/waitlist";
+import { createSubscriber, getSubscriberByEmail, incrementReferralCount, createSubscriberWithReferral } from "@/lib/waitlist";
 import { enqueueEmail } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendMetaConversionEvent, sendGaConversionEvent } from "@/lib/tracking";
+import { isValidEmail, safeParseJson, validateLength } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
 	if (!siteConfig.features.waitlist) {
-		return apiError("NOT_FOUND", "Waitlist is not available");
+		return apiError("NOT_FOUND", "Resource not found");
 	}
 
 	const ip = getClientIp(request);
@@ -19,8 +20,12 @@ export async function POST(request: NextRequest) {
 		return apiError("RATE_LIMITED", "Too many requests. Please try again later.");
 	}
 
+	const body = await safeParseJson(request);
+	if (!body || typeof body !== "object") {
+		return apiError("VALIDATION_ERROR", "Invalid JSON");
+	}
+
 	try {
-		const body = await request.json();
 		const { email, name, turnstileToken, ref, source } = body as {
 			email?: string;
 			name?: string;
@@ -31,6 +36,18 @@ export async function POST(request: NextRequest) {
 
 		if (!email || !name) {
 			return apiError("VALIDATION_ERROR", "Email and name are required");
+		}
+
+		if (!isValidEmail(email)) {
+			return apiError("VALIDATION_ERROR", "Invalid email format");
+		}
+
+		const lengthErr =
+			validateLength(name, "Name", 100) ??
+			validateLength(source, "Source", 255) ??
+			validateLength(ref, "Referral code", 20);
+		if (lengthErr) {
+			return apiError("VALIDATION_ERROR", lengthErr);
 		}
 
 		if (!turnstileToken) {
@@ -49,19 +66,41 @@ export async function POST(request: NextRequest) {
 			return apiSuccess({ referralCode: existing.referralCode, existing: true });
 		}
 
-		const referralCode = await generateReferralCode();
-		const subscriber = await createSubscriber({
-			email,
-			name,
-			referralCode,
-			referredBy: ref ?? undefined,
-			source,
-		});
-
-		// If referred, increment referrer's count
-		if (ref) {
-			await incrementReferralCount(ref);
+		// Retry loop handles both email duplicate (concurrent) and referral code collision
+		let subscriber;
+		for (let attempt = 0; attempt < 3; attempt++) {
+			const referralCode = generateReferralCode();
+			try {
+				subscriber = ref
+					? await createSubscriberWithReferral({
+						email,
+						name,
+						referralCode,
+						referredBy: ref,
+						source,
+					})
+					: await createSubscriber({
+						email,
+						name,
+						referralCode,
+						source,
+					});
+				break;
+			} catch (err) {
+				if (err instanceof Error && err.message.includes("UNIQUE constraint failed")) {
+					// Check if it's an email duplicate (concurrent signup)
+					const existingSub = await getSubscriberByEmail(email);
+					if (existingSub) {
+						return apiSuccess({ referralCode: existingSub.referralCode, existing: true });
+					}
+					// Otherwise it's a referral code collision — retry with new code
+					if (attempt === 2) throw err;
+					continue;
+				}
+				throw err;
+			}
 		}
+		if (!subscriber) throw new Error("Failed to create subscriber");
 
 		// Queue confirmation email
 		try {
@@ -71,7 +110,7 @@ export async function POST(request: NextRequest) {
 					email,
 					name,
 					position: subscriber.position,
-					referralCode,
+					referralCode: subscriber.referralCode,
 				},
 			});
 		} catch {
@@ -97,7 +136,7 @@ export async function POST(request: NextRequest) {
 			sourceUrl: request.url,
 		}).catch(() => {});
 
-		return apiSuccess({ referralCode, position: subscriber.position, eventId }, 201);
+		return apiSuccess({ referralCode: subscriber.referralCode, position: subscriber.position, eventId }, 201);
 	} catch {
 		return apiError("INTERNAL_ERROR", "An unexpected error occurred");
 	}

@@ -15,10 +15,7 @@ interface BreadcrumbsProps {
 }
 
 export function Breadcrumbs({ items, currentPage }: BreadcrumbsProps) {
-	const breadcrumbs: BreadcrumbItem[] = [
-		{ label: "Home", href: "/" },
-		...(items ?? []),
-	];
+	const breadcrumbs: BreadcrumbItem[] = items ?? [];
 
 	const jsonLd = {
 		"@context": "https://schema.org",

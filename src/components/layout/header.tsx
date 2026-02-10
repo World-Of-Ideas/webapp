@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { Search } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { headerLinks } from "@/config/navigation";
-import { Button } from "@/components/ui/button";
 import { MobileNav } from "./mobile-nav";
+import { SearchTrigger } from "./search-trigger";
 
 export function Header() {
 	const filteredLinks = headerLinks.filter(
@@ -17,7 +16,7 @@ export function Header() {
 					{siteConfig.name}
 				</Link>
 
-				<nav className="hidden md:flex md:gap-6">
+				<nav aria-label="Main navigation" className="hidden md:flex md:gap-6">
 					{filteredLinks.map((link) => (
 						<Link
 							key={link.href}
@@ -30,10 +29,7 @@ export function Header() {
 				</nav>
 
 				<div className="ml-auto flex items-center gap-2">
-					<Button variant="ghost" size="icon" className="hidden md:flex" aria-label="Search">
-						<Search className="h-4 w-4" />
-						<span className="sr-only">Search (⌘K)</span>
-					</Button>
+					<SearchTrigger />
 					<MobileNav links={filteredLinks} />
 				</div>
 			</div>

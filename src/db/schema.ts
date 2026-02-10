@@ -36,7 +36,10 @@ export const posts = sqliteTable(
 		createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 		updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
 	},
-	(table) => [index("idx_posts_listing").on(table.published, table.createdAt)],
+	(table) => [
+		index("idx_posts_listing").on(table.published, table.createdAt),
+		index("idx_posts_published_at").on(table.publishedAt),
+	],
 );
 
 // --- Contact Submissions ---

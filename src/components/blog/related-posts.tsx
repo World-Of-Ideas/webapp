@@ -26,7 +26,7 @@ export async function RelatedPosts({ currentSlug, tags }: RelatedPostsProps) {
 							description: post.description,
 							coverImage: post.cover_image,
 							publishedAt: post.published_at,
-							tags: post.tags ? JSON.parse(post.tags) : null,
+							tags: post.tags ? (() => { try { return JSON.parse(post.tags as string); } catch { return null; } })() : null,
 						}}
 					/>
 				))}

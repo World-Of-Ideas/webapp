@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { getAllPages, createPage, isReservedSlug } from "@/lib/pages";
+import { validatePageBody } from "@/lib/validation";
 
 export async function GET() {
 	if (!(await requireAdminSession())) {
@@ -18,18 +19,16 @@ export async function POST(request: NextRequest) {
 	}
 
 	try {
-		const body = await request.json() as Parameters<typeof createPage>[0];
-		const { slug } = body;
-
-		if (!slug) {
-			return apiError("VALIDATION_ERROR", "Slug is required");
-		}
+		const body = await request.json();
+		const bodyError = validatePageBody(body);
+		if (bodyError) return apiError("VALIDATION_ERROR", bodyError);
+		const { slug } = body as Parameters<typeof createPage>[0];
 
 		if (isReservedSlug(slug)) {
 			return apiError("VALIDATION_ERROR", `Slug "${slug}" is reserved`);
 		}
 
-		const page = await createPage(body);
+		const page = await createPage(body as Parameters<typeof createPage>[0]);
 		return apiSuccess(page, 201);
 	} catch {
 		return apiError("INTERNAL_ERROR", "Failed to create page");

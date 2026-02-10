@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "@/db";
+import { escapeLike } from "@/lib/validation";
 
 interface SearchResult {
 	type: "page" | "post";
@@ -15,19 +16,19 @@ export async function search(query: string): Promise<{
 	if (query.length < 2) return { pages: [], posts: [] };
 
 	const db = await getDb();
-	const pattern = `%${query}%`;
+	const pattern = `%${escapeLike(query.trim())}%`;
 
 	const [pageResults, postResults] = await Promise.all([
 		db.all(
 			sql`SELECT slug, title, description FROM pages
 				WHERE published = 1
-				AND (title LIKE ${pattern} OR description LIKE ${pattern})
+				AND (title LIKE ${pattern} ESCAPE '\\' OR description LIKE ${pattern} ESCAPE '\\')
 				LIMIT 5`,
 		),
 		db.all(
 			sql`SELECT slug, title, description FROM posts
 				WHERE published = 1
-				AND (title LIKE ${pattern} OR description LIKE ${pattern})
+				AND (title LIKE ${pattern} ESCAPE '\\' OR description LIKE ${pattern} ESCAPE '\\')
 				LIMIT 5`,
 		),
 	]);

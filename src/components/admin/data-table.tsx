@@ -45,6 +45,16 @@ export function DataTable({ columns, data, onRowClick }: DataTableProps) {
 						key={i}
 						className={cn(onRowClick && "cursor-pointer")}
 						onClick={() => onRowClick?.(row)}
+						{...(onRowClick ? {
+							tabIndex: 0,
+							role: "button",
+							onKeyDown: (e: React.KeyboardEvent) => {
+								if (e.key === "Enter" || e.key === " ") {
+									e.preventDefault();
+									onRowClick(row);
+								}
+							},
+						} : {})}
 					>
 						{columns.map((col) => (
 							<TableCell key={col.key}>

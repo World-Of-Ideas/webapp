@@ -15,7 +15,7 @@ function escapeHtml(str: string): string {
 async function buildUnsubscribeHeaders(email: string, env: CloudflareEnv) {
 	const secret = (env as unknown as Record<string, unknown>).UNSUBSCRIBE_SECRET as string;
 	const token = await generateUnsubscribeToken(email, secret);
-	const url = `${env.SITE_URL}/api/unsubscribe?email=${encodeURIComponent(email)}&token=${token}`;
+	const url = `${env.SITE_URL}/api/unsubscribe?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`;
 	return {
 		"List-Unsubscribe": `<${url}>`,
 		"List-Unsubscribe-Post": "List-Unsubscribe=One-Click",

@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import type { RelatedPage } from "@/types/content";
 import type { ExistingPageInfo } from "./page-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { isSafeUrl } from "@/lib/utils";
 import {
 	Select,
 	SelectContent,
@@ -20,7 +22,16 @@ interface RelatedPagesEditorProps {
 }
 
 export function RelatedPagesEditor({ pages, onChange, existingPages = [] }: RelatedPagesEditorProps) {
+	const [hrefWarning, setHrefWarning] = useState<Record<number, string>>({});
+
 	function updatePage(index: number, field: keyof RelatedPage, value: string) {
+		if (field === "href") {
+			if (value && !isSafeUrl(value)) {
+				setHrefWarning((prev) => ({ ...prev, [index]: "Unsafe URL protocol" }));
+			} else {
+				setHrefWarning((prev) => { const next = { ...prev }; delete next[index]; return next; });
+			}
+		}
 		const updated = [...pages];
 		updated[index] = { ...updated[index], [field]: value };
 		onChange(updated);
@@ -67,14 +78,16 @@ export function RelatedPagesEditor({ pages, onChange, existingPages = [] }: Rela
 							size="icon-xs"
 							onClick={() => removePage(i)}
 							title="Remove related page"
+							aria-label="Remove page"
 						>
 							&times;
 						</Button>
 					</div>
 
 					<div className="space-y-2">
-						<Label>Title</Label>
+						<Label htmlFor={`rp-title-${i}`}>Title</Label>
 						<Input
+							id={`rp-title-${i}`}
 							value={page.title}
 							onChange={(e) => updatePage(i, "title", e.target.value)}
 							placeholder="Page title"
@@ -82,8 +95,9 @@ export function RelatedPagesEditor({ pages, onChange, existingPages = [] }: Rela
 					</div>
 
 					<div className="space-y-2">
-						<Label>Description</Label>
+						<Label htmlFor={`rp-desc-${i}`}>Description</Label>
 						<Input
+							id={`rp-desc-${i}`}
 							value={page.description}
 							onChange={(e) => updatePage(i, "description", e.target.value)}
 							placeholder="Brief description"
@@ -91,12 +105,16 @@ export function RelatedPagesEditor({ pages, onChange, existingPages = [] }: Rela
 					</div>
 
 					<div className="space-y-2">
-						<Label>Link (href)</Label>
+						<Label htmlFor={`rp-href-${i}`}>Link (href)</Label>
 						<Input
+							id={`rp-href-${i}`}
 							value={page.href}
 							onChange={(e) => updatePage(i, "href", e.target.value)}
 							placeholder="/path/to/page"
 						/>
+						{hrefWarning[i] && (
+							<p className="text-xs text-destructive">{hrefWarning[i]}</p>
+						)}
 					</div>
 				</div>
 			))}

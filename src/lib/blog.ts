@@ -9,7 +9,7 @@ export async function getPublishedPosts(page: number, limit: number) {
 	const [items, [{ total }]] = await Promise.all([
 		db.query.posts.findMany({
 			where: eq(posts.published, true),
-			orderBy: [desc(posts.publishedAt)],
+			orderBy: [desc(posts.publishedAt), desc(posts.createdAt), desc(posts.id)],
 			limit,
 			offset,
 		}),
@@ -53,7 +53,7 @@ export async function getRelatedPosts(currentSlug: string, tags: string[], limit
 	// Use json_each to find posts sharing at least one tag
 	// Note: db.all() returns raw SQL rows with snake_case column names
 	const results = await db.all(
-		sql`SELECT DISTINCT p.* FROM posts p, json_each(p.tags) AS t
+		sql`SELECT DISTINCT p.slug, p.title, p.description, p.cover_image, p.published_at, p.tags FROM posts p, json_each(p.tags) AS t
 			WHERE p.published = 1
 			AND p.slug != ${currentSlug}
 			AND t.value IN (${sql.join(
@@ -133,20 +133,21 @@ export async function updatePost(
 	const db = await getDb();
 	const now = new Date().toISOString();
 
-	// If publishing for the first time, set publishedAt
-	const updateData: Record<string, unknown> = {
-		...data,
-		updatedAt: now,
-	};
+	// Allowlist fields to prevent mass assignment (no id, createdAt, publishedAt overwrite)
+	const updateData: Record<string, unknown> = { updatedAt: now };
+	if (data.slug !== undefined) updateData.slug = data.slug;
+	if (data.title !== undefined) updateData.title = data.title;
+	if (data.description !== undefined) updateData.description = data.description;
+	if (data.content !== undefined) updateData.content = data.content;
+	if (data.faqs !== undefined) updateData.faqs = data.faqs;
+	if (data.coverImage !== undefined) updateData.coverImage = data.coverImage;
+	if (data.author !== undefined) updateData.author = data.author;
+	if (data.tags !== undefined) updateData.tags = data.tags;
+	if (data.published !== undefined) updateData.published = data.published;
 
-	if (data.published !== undefined) {
-		// Get current post to check if publishedAt needs to be set
-		const existing = await db.query.posts.findFirst({
-			where: eq(posts.id, id),
-		});
-		if (data.published && !existing?.publishedAt) {
-			updateData.publishedAt = now;
-		}
+	// Set publishedAt atomically using SQL CASE to avoid TOCTOU
+	if (data.published === true) {
+		updateData.publishedAt = sql`CASE WHEN ${posts.publishedAt} IS NULL THEN ${now} ELSE ${posts.publishedAt} END`;
 	}
 
 	const [post] = await db
@@ -159,7 +160,10 @@ export async function updatePost(
 
 export async function deletePost(id: number) {
 	const db = await getDb();
+	// Get the post slug before deletion for R2 cleanup reference
+	const post = await db.query.posts.findFirst({ where: eq(posts.id, id) });
 	await db.delete(posts).where(eq(posts.id, id));
+	return post?.slug ?? null;
 }
 
 export async function getPostCount() {

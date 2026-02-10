@@ -5,11 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-/** Reject dangerous URL protocols (javascript:, data:, vbscript:). */
+/** Only allow safe URL protocols via allowlist approach. */
 export function isSafeUrl(url: string): boolean {
-  const trimmed = url.trim().toLowerCase();
-  if (trimmed.startsWith("javascript:")) return false;
-  if (trimmed.startsWith("data:")) return false;
-  if (trimmed.startsWith("vbscript:")) return false;
-  return true;
+  const trimmed = url.trim();
+  // Relative URLs and fragment-only are safe
+  if (trimmed.startsWith("/") || trimmed.startsWith("#") || trimmed.startsWith("?")) return true;
+  // Allow only http(s), mailto, and tel protocols
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith("https://") || lower.startsWith("http://") || lower.startsWith("mailto:") || lower.startsWith("tel:")) return true;
+  // Reject everything else (javascript:, data:, vbscript:, unknown protocols)
+  // Also reject protocol-relative URLs without explicit scheme
+  return !trimmed.includes(":");
 }

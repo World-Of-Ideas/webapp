@@ -3,7 +3,11 @@ import { getDb } from "@/db";
 import { pages } from "@/db/schema";
 
 const SYSTEM_SLUGS = new Set(["home", "waitlist", "giveaway", "contact", "blog", "terms", "privacy"]);
-const RESERVED_SLUGS = new Set([...SYSTEM_SLUGS, "admin", "api", "feed.xml"]);
+const RESERVED_SLUGS = new Set([
+	...SYSTEM_SLUGS,
+	"admin", "api", "feed.xml",
+	"sitemap.xml", "robots.txt", "_next", ".well-known",
+]);
 
 export function isReservedSlug(slug: string): boolean {
 	return RESERVED_SLUGS.has(slug);
@@ -100,9 +104,23 @@ export async function updatePage(
 ) {
 	const db = await getDb();
 	const now = new Date().toISOString();
+
+	// Allowlist fields — never allow slug (PK) to be changed via update
+	const updateData: Record<string, unknown> = { updatedAt: now };
+	if (data.parentSlug !== undefined) updateData.parentSlug = data.parentSlug;
+	if (data.title !== undefined) updateData.title = data.title;
+	if (data.description !== undefined) updateData.description = data.description;
+	if (data.content !== undefined) updateData.content = data.content;
+	if (data.faqs !== undefined) updateData.faqs = data.faqs;
+	if (data.relatedPages !== undefined) updateData.relatedPages = data.relatedPages;
+	if (data.coverImage !== undefined) updateData.coverImage = data.coverImage;
+	if (data.metadata !== undefined) updateData.metadata = data.metadata;
+	if (data.published !== undefined) updateData.published = data.published;
+	if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
+
 	const [page] = await db
 		.update(pages)
-		.set({ ...data, updatedAt: now } as typeof pages.$inferInsert)
+		.set(updateData as typeof pages.$inferInsert)
 		.where(eq(pages.slug, slug))
 		.returning();
 	return page;
@@ -113,5 +131,9 @@ export async function deletePage(slug: string) {
 		throw new Error("Cannot delete system pages");
 	}
 	const db = await getDb();
-	await db.delete(pages).where(eq(pages.slug, slug));
+	// Use batch to atomically clear child references and delete page
+	await db.batch([
+		db.update(pages).set({ parentSlug: null }).where(eq(pages.parentSlug, slug)),
+		db.delete(pages).where(eq(pages.slug, slug)),
+	]);
 }

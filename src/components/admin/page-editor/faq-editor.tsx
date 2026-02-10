@@ -50,6 +50,7 @@ export function FaqEditor({ faqs, onChange }: FaqEditorProps) {
 								onClick={() => moveFaq(i, -1)}
 								disabled={i === 0}
 								title="Move up"
+								aria-label="Move FAQ up"
 							>
 								&#8593;
 							</Button>
@@ -60,6 +61,7 @@ export function FaqEditor({ faqs, onChange }: FaqEditorProps) {
 								onClick={() => moveFaq(i, 1)}
 								disabled={i === faqs.length - 1}
 								title="Move down"
+								aria-label="Move FAQ down"
 							>
 								&#8595;
 							</Button>
@@ -69,6 +71,7 @@ export function FaqEditor({ faqs, onChange }: FaqEditorProps) {
 								size="icon-xs"
 								onClick={() => removeFaq(i)}
 								title="Remove FAQ"
+								aria-label="Remove FAQ"
 							>
 								&times;
 							</Button>
@@ -76,8 +79,9 @@ export function FaqEditor({ faqs, onChange }: FaqEditorProps) {
 					</div>
 
 					<div className="space-y-2">
-						<Label>Question</Label>
+						<Label htmlFor={`faq-q-${i}`}>Question</Label>
 						<Input
+							id={`faq-q-${i}`}
 							value={faq.question}
 							onChange={(e) => updateFaq(i, "question", e.target.value)}
 							placeholder="Frequently asked question..."
@@ -85,8 +89,9 @@ export function FaqEditor({ faqs, onChange }: FaqEditorProps) {
 					</div>
 
 					<div className="space-y-2">
-						<Label>Answer</Label>
+						<Label htmlFor={`faq-a-${i}`}>Answer</Label>
 						<Textarea
+							id={`faq-a-${i}`}
 							value={faq.answer}
 							onChange={(e) => updateFaq(i, "answer", e.target.value)}
 							placeholder="Answer to the question..."

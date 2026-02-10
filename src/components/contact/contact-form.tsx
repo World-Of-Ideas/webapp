@@ -113,7 +113,7 @@ export function ContactForm() {
 			<Turnstile onSuccess={setTurnstileToken} />
 
 			{error && (
-				<p className="text-sm text-destructive">{error}</p>
+				<p className="text-sm text-destructive" role="alert">{error}</p>
 			)}
 
 			<Button type="submit" className="w-full" disabled={isSubmitting}>

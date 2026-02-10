@@ -47,6 +47,7 @@ export async function Footer() {
 						</div>
 					</div>
 
+					<nav aria-label="Footer navigation" className="col-span-3 grid gap-8 md:grid-cols-3">
 					{footerGroups.map((group) => {
 						const filteredLinks = group.links.filter(
 							(link) => !link.feature || siteConfig.features[link.feature],
@@ -89,6 +90,7 @@ export async function Footer() {
 							</ul>
 						</div>
 					)}
+				</nav>
 				</div>
 
 				<div className="mt-8 flex flex-col items-center gap-2 border-t pt-8 text-center text-sm text-muted-foreground">

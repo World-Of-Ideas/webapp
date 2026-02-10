@@ -60,7 +60,9 @@ export async function getGiveawayActions(entryId: number) {
 
 export function isGiveawayEnded(endDate: string | undefined): boolean {
 	if (!endDate) return false;
-	return new Date(endDate) < new Date();
+	const parsed = new Date(endDate);
+	if (isNaN(parsed.getTime())) return false;
+	return parsed < new Date();
 }
 
 export async function getGiveawayEntries(page: number, limit: number) {

@@ -24,6 +24,10 @@
 		{ "binding": "ASSETS_BUCKET", "bucket_name": "webapp-local-assets" },
 		{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "webapp-local-cache" }
 	],
+	// Local dev queue producer (no-op in local, but prevents runtime binding errors)
+	"queues": {
+		"producers": [{ "binding": "EMAIL_QUEUE", "queue": "webapp-local-email-queue" }]
+	},
 	// NOTE: Queue consumers are configured per environment below, but OpenNext may not
 	// support queue consumers natively. In that case, a thin wrapper worker is needed
 	// to call handleEmailQueue() from src/lib/queue-consumer.ts.

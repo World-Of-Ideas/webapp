@@ -35,9 +35,9 @@ export async function generateMetadata({
 			title: seoTitle,
 			description: page.description ?? undefined,
 			url: `${siteConfig.url}/${fullSlug}`,
-			...(page.coverImage && {
-				images: [{ url: page.coverImage }],
-			}),
+			images: page.coverImage
+				? [{ url: page.coverImage }]
+				: [{ url: `${siteConfig.url}/og-default.png` }],
 		},
 		alternates: {
 			canonical: `${siteConfig.url}/${fullSlug}`,

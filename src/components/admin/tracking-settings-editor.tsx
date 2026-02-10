@@ -315,7 +315,7 @@ export function TrackingSettingsEditor({ settings }: TrackingSettingsEditorProps
 			</Card>
 
 			{message && (
-				<p className={`text-sm ${message.includes("success") ? "text-green-600" : "text-destructive"}`}>
+				<p className={`text-sm ${message.includes("success") ? "text-green-600" : "text-destructive"}`} role="status">
 					{message}
 				</p>
 			)}

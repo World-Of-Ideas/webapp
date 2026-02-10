@@ -1,7 +1,7 @@
 export const siteConfig = {
 	name: "Product Name",
 	description: "One-line value proposition for your product.",
-	url: "https://example.com",
+	url: process.env.NEXT_PUBLIC_SITE_URL || "https://example.com",
 	author: "Company Name", // Used in meta authors/creator tags
 
 	// Product links — used by CTAs when waitlist is disabled (post-launch)

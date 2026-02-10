@@ -9,10 +9,11 @@ import { getPageBySlug } from "@/lib/pages";
 import { enqueueEmail } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendMetaConversionEvent, sendGaConversionEvent } from "@/lib/tracking";
+import { isValidEmail, safeParseJson, validateLength } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
 	if (!siteConfig.features.giveaway) {
-		return apiError("NOT_FOUND", "Giveaway is not available");
+		return apiError("NOT_FOUND", "Resource not found");
 	}
 
 	const ip = getClientIp(request);
@@ -20,8 +21,12 @@ export async function POST(request: NextRequest) {
 		return apiError("RATE_LIMITED", "Too many requests. Please try again later.");
 	}
 
+	const body = await safeParseJson(request);
+	if (!body || typeof body !== "object") {
+		return apiError("VALIDATION_ERROR", "Invalid JSON");
+	}
+
 	try {
-		const body = await request.json();
 		const { email, turnstileToken, source } = body as {
 			email?: string;
 			turnstileToken?: string;
@@ -30,6 +35,15 @@ export async function POST(request: NextRequest) {
 
 		if (!email) {
 			return apiError("VALIDATION_ERROR", "Email is required");
+		}
+
+		if (!isValidEmail(email)) {
+			return apiError("VALIDATION_ERROR", "Invalid email format");
+		}
+
+		const lengthErr = validateLength(source, "Source", 255);
+		if (lengthErr) {
+			return apiError("VALIDATION_ERROR", lengthErr);
 		}
 
 		if (!turnstileToken) {
@@ -57,11 +71,23 @@ export async function POST(request: NextRequest) {
 
 		// Link to subscriber if exists
 		const subscriber = await getSubscriberByEmail(email);
-		const entry = await createGiveawayEntry({
-			email,
-			subscriberId: subscriber?.id,
-			source,
-		});
+		let entry;
+		try {
+			entry = await createGiveawayEntry({
+				email,
+				subscriberId: subscriber?.id,
+				source,
+			});
+		} catch (err) {
+			// Catch unique constraint violation (concurrent duplicate entry)
+			if (err instanceof Error && err.message.includes("UNIQUE constraint failed")) {
+				const existingEntry = await getGiveawayEntryByEmail(email);
+				if (existingEntry) {
+					return apiSuccess({ entryId: existingEntry.id, totalEntries: existingEntry.totalEntries, existing: true });
+				}
+			}
+			throw err;
+		}
 
 		// Queue confirmation email
 		try {

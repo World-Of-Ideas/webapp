@@ -80,7 +80,7 @@ export function ReferralDashboard({ code }: ReferralDashboardProps) {
 	}
 
 	if (error) {
-		return <p className="text-sm text-destructive">{error}</p>;
+		return <p className="text-sm text-destructive" role="alert">{error}</p>;
 	}
 
 	if (!data) {

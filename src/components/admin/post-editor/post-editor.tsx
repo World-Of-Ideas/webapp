@@ -187,11 +187,12 @@ export function PostEditor({ post }: PostEditorProps) {
 
 			<div className="flex items-center gap-3">
 				<Switch
+					id="post-published"
 					checked={published}
 					onCheckedChange={setPublished}
 					disabled={isSaving}
 				/>
-				<Label>Published</Label>
+				<Label htmlFor="post-published">Published</Label>
 			</div>
 
 			<div className="space-y-2">
@@ -205,7 +206,7 @@ export function PostEditor({ post }: PostEditorProps) {
 			</div>
 
 			{error && (
-				<p className="text-sm text-destructive">{error}</p>
+				<p className="text-sm text-destructive" role="alert">{error}</p>
 			)}
 
 			<Button type="submit" disabled={isSaving}>

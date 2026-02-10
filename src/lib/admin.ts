@@ -16,6 +16,8 @@ export async function createSession(): Promise<string> {
 	return id;
 }
 
+const MAX_SESSION_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days absolute max
+
 export async function validateSession(sessionId: string): Promise<boolean> {
 	const db = await getDb();
 	const session = await db.query.adminSessions.findFirst({
@@ -27,6 +29,20 @@ export async function validateSession(sessionId: string): Promise<boolean> {
 		await db.delete(adminSessions).where(eq(adminSessions.id, sessionId));
 		return false;
 	}
+
+	// Enforce absolute max session lifetime (7 days from creation)
+	const createdAt = new Date(session.createdAt).getTime();
+	if (Date.now() - createdAt > MAX_SESSION_AGE_MS) {
+		await db.delete(adminSessions).where(eq(adminSessions.id, sessionId));
+		return false;
+	}
+
+	// Extend session TTL on successful validation (sliding window)
+	const newExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+	await db
+		.update(adminSessions)
+		.set({ expiresAt: newExpiry })
+		.where(eq(adminSessions.id, sessionId));
 
 	return true;
 }

@@ -4,6 +4,7 @@ import type { ContentBlock } from "@/types/content";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { isSafeUrl } from "@/lib/utils";
 
 interface ParagraphEditorProps {
 	block: ContentBlock;
@@ -30,6 +31,9 @@ export function ParagraphEditor({ block, onChange }: ParagraphEditorProps) {
 					onChange={(e) => onChange({ ...block, link: e.target.value })}
 					placeholder="https://..."
 				/>
+				{block.link && !isSafeUrl(block.link) && (
+					<p className="text-xs text-destructive">Unsafe URL protocol</p>
+				)}
 			</div>
 
 			<div className="space-y-2">

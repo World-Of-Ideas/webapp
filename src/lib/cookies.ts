@@ -37,5 +37,5 @@ export function buildConsentCookieValue(categories: ConsentCategory[]): string {
 
 export function setConsentCookie(categories: ConsentCategory[]): void {
 	const value = buildConsentCookieValue(categories);
-	document.cookie = `${CONSENT_COOKIE_NAME}=${value};path=/;max-age=${CONSENT_MAX_AGE};SameSite=Lax`;
+	document.cookie = `${CONSENT_COOKIE_NAME}=${value};path=/;max-age=${CONSENT_MAX_AGE};SameSite=Lax;Secure`;
 }

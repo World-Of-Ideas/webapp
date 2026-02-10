@@ -28,9 +28,31 @@ export async function updateTrackingSettings(data: {
 }) {
 	const db = await getDb();
 
-	await db
-		.insert(trackingSettings)
-		.values({
+	// Build update set — only include fields that were explicitly provided
+	const updateSet: Record<string, unknown> = { updatedAt: sql`datetime('now')` };
+	if (data.metaPixelEnabled !== undefined) updateSet.metaPixelEnabled = data.metaPixelEnabled;
+	if (data.metaPixelId !== undefined) updateSet.metaPixelId = data.metaPixelId;
+	if (data.metaCapiEnabled !== undefined) updateSet.metaCapiEnabled = data.metaCapiEnabled;
+	if (data.metaCapiToken !== undefined) updateSet.metaCapiToken = data.metaCapiToken;
+	if (data.gaEnabled !== undefined) updateSet.gaEnabled = data.gaEnabled;
+	if (data.gaMeasurementId !== undefined) updateSet.gaMeasurementId = data.gaMeasurementId;
+	if (data.gaMpEnabled !== undefined) updateSet.gaMpEnabled = data.gaMpEnabled;
+	if (data.gaMpApiSecret !== undefined) updateSet.gaMpApiSecret = data.gaMpApiSecret;
+	if (data.gtmEnabled !== undefined) updateSet.gtmEnabled = data.gtmEnabled;
+	if (data.gtmContainerId !== undefined) updateSet.gtmContainerId = data.gtmContainerId;
+	if (data.utmTrackingEnabled !== undefined) updateSet.utmTrackingEnabled = data.utmTrackingEnabled;
+	if (data.cookieConsentEnabled !== undefined) updateSet.cookieConsentEnabled = data.cookieConsentEnabled;
+
+	// Try update first (row exists in normal operation)
+	const [existing] = await db
+		.update(trackingSettings)
+		.set(updateSet as typeof trackingSettings.$inferInsert)
+		.where(eq(trackingSettings.id, 1))
+		.returning();
+
+	if (!existing) {
+		// First-time insert if no row exists yet
+		await db.insert(trackingSettings).values({
 			id: 1,
 			metaPixelEnabled: data.metaPixelEnabled ?? false,
 			metaPixelId: data.metaPixelId ?? null,
@@ -45,25 +67,8 @@ export async function updateTrackingSettings(data: {
 			utmTrackingEnabled: data.utmTrackingEnabled ?? true,
 			cookieConsentEnabled: data.cookieConsentEnabled ?? false,
 			updatedAt: sql`datetime('now')`,
-		})
-		.onConflictDoUpdate({
-			target: trackingSettings.id,
-			set: {
-				...(data.metaPixelEnabled !== undefined && { metaPixelEnabled: data.metaPixelEnabled }),
-				...(data.metaPixelId !== undefined && { metaPixelId: data.metaPixelId }),
-				...(data.metaCapiEnabled !== undefined && { metaCapiEnabled: data.metaCapiEnabled }),
-				...(data.metaCapiToken !== undefined && { metaCapiToken: data.metaCapiToken }),
-				...(data.gaEnabled !== undefined && { gaEnabled: data.gaEnabled }),
-				...(data.gaMeasurementId !== undefined && { gaMeasurementId: data.gaMeasurementId }),
-				...(data.gaMpEnabled !== undefined && { gaMpEnabled: data.gaMpEnabled }),
-				...(data.gaMpApiSecret !== undefined && { gaMpApiSecret: data.gaMpApiSecret }),
-				...(data.gtmEnabled !== undefined && { gtmEnabled: data.gtmEnabled }),
-				...(data.gtmContainerId !== undefined && { gtmContainerId: data.gtmContainerId }),
-				...(data.utmTrackingEnabled !== undefined && { utmTrackingEnabled: data.utmTrackingEnabled }),
-				...(data.cookieConsentEnabled !== undefined && { cookieConsentEnabled: data.cookieConsentEnabled }),
-				updatedAt: sql`datetime('now')`,
-			},
 		});
+	}
 }
 
 const encoder = new TextEncoder();
@@ -113,10 +118,9 @@ export async function sendMetaConversionEvent(params: {
 		],
 	};
 
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 5000);
 	try {
-		const controller = new AbortController();
-		const timeout = setTimeout(() => controller.abort(), 5000);
-
 		await fetch(
 			`https://graph.facebook.com/v21.0/${settings.metaPixelId}/events?access_token=${settings.metaCapiToken}`,
 			{
@@ -126,10 +130,10 @@ export async function sendMetaConversionEvent(params: {
 				signal: controller.signal,
 			},
 		);
-
-		clearTimeout(timeout);
 	} catch {
 		// Fire-and-forget: don't let CAPI errors affect the request
+	} finally {
+		clearTimeout(timeout);
 	}
 }
 
@@ -143,8 +147,18 @@ export async function sendGaConversionEvent(params: {
 		return;
 	}
 
+	// Use a deterministic client_id based on email when available
+	// This allows GA to correlate server-side events from the same user
+	let clientId: string;
+	if (params.email) {
+		const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(params.email));
+		clientId = Array.from(new Uint8Array(hash)).slice(0, 16).map((b) => b.toString(16).padStart(2, "0")).join("");
+	} else {
+		clientId = crypto.randomUUID();
+	}
+
 	const payload = {
-		client_id: crypto.randomUUID(),
+		client_id: clientId,
 		events: [
 			{
 				name: params.eventName,
@@ -155,22 +169,21 @@ export async function sendGaConversionEvent(params: {
 		],
 	};
 
+	const controller2 = new AbortController();
+	const timeout2 = setTimeout(() => controller2.abort(), 5000);
 	try {
-		const controller = new AbortController();
-		const timeout = setTimeout(() => controller.abort(), 5000);
-
 		await fetch(
 			`https://www.google-analytics.com/mp/collect?measurement_id=${settings.gaMeasurementId}&api_secret=${settings.gaMpApiSecret}`,
 			{
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
-				signal: controller.signal,
+				signal: controller2.signal,
 			},
 		);
-
-		clearTimeout(timeout);
 	} catch {
 		// Fire-and-forget: don't let GA MP errors affect the request
+	} finally {
+		clearTimeout(timeout2);
 	}
 }

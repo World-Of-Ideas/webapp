@@ -85,6 +85,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const contentPages = await getPublishedContentPages();
 	for (const page of contentPages) {
 		if (isSystemPage(page.slug)) continue;
+		if ((page.metadata as Record<string, unknown> | null)?.noindex) continue;
 		entries.push({
 			url: `${baseUrl}/${page.slug}`,
 			lastModified: page.updatedAt ? new Date(page.updatedAt) : new Date(),

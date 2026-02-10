@@ -4,6 +4,7 @@ import Link from "next/link";
 import { validateSession } from "@/lib/admin";
 import { siteConfig } from "@/config/site";
 import { LogoutButton } from "@/components/admin/logout-button";
+import { cn } from "@/lib/utils";
 
 interface AdminSidebarLink {
 	label: string;
@@ -65,15 +66,24 @@ export default async function AdminLayout({
 				</div>
 
 				<nav className="flex-1 space-y-1 px-3 py-4">
-					{visibleLinks.map((link) => (
-						<Link
-							key={link.href}
-							href={link.href}
-							className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-						>
-							{link.label}
-						</Link>
-					))}
+					{visibleLinks.map((link) => {
+						const isActive = pathname === link.href;
+						return (
+							<Link
+								key={link.href}
+								href={link.href}
+								aria-current={isActive ? "page" : undefined}
+								className={cn(
+									"block rounded-md px-3 py-2 text-sm font-medium transition-colors",
+									isActive
+										? "bg-accent text-accent-foreground"
+										: "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+								)}
+							>
+								{link.label}
+							</Link>
+						);
+					})}
 				</nav>
 
 				<div className="border-t px-3 py-3">

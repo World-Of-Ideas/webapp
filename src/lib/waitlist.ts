@@ -28,6 +28,37 @@ export async function createSubscriber(data: {
 	return subscriber;
 }
 
+/** Create subscriber and increment referrer's count atomically in a batch. */
+export async function createSubscriberWithReferral(data: {
+	email: string;
+	name: string;
+	referralCode: string;
+	referredBy: string;
+	source?: string;
+}) {
+	const db = await getDb();
+
+	const insertStmt = db
+		.insert(subscribers)
+		.values({
+			email: data.email,
+			name: data.name,
+			referralCode: data.referralCode,
+			referredBy: data.referredBy,
+			source: data.source ?? null,
+			position: sql`(SELECT COALESCE(MAX(${subscribers.position}), 0) + 1 FROM ${subscribers})`,
+		})
+		.returning();
+
+	const updateStmt = db
+		.update(subscribers)
+		.set({ referralCount: sql`${subscribers.referralCount} + 1` })
+		.where(eq(subscribers.referralCode, data.referredBy));
+
+	const [results] = await db.batch([insertStmt, updateStmt]);
+	return results[0];
+}
+
 export async function getSubscriberByEmail(email: string) {
 	const db = await getDb();
 	return db.query.subscribers.findFirst({

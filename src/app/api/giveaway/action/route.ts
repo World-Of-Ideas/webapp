@@ -3,9 +3,10 @@ import { getEnv } from "@/db";
 import { siteConfig } from "@/config/site";
 import { apiSuccess, apiError, getClientIp } from "@/lib/api";
 import { verifyTurnstileToken } from "@/lib/turnstile";
-import { recordGiveawayAction, getGiveawayEntryByEmail, isGiveawayEnded } from "@/lib/giveaway";
+import { recordGiveawayAction, getGiveawayEntryByEmail, getGiveawayActions, isGiveawayEnded } from "@/lib/giveaway";
 import { getPageBySlug } from "@/lib/pages";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { isValidEmail, safeParseJson, validateLength } from "@/lib/validation";
 
 const ALLOWED_ACTIONS = [
 	"twitter_follow",
@@ -24,7 +25,7 @@ function isValidAction(action: string): boolean {
 
 export async function POST(request: NextRequest) {
 	if (!siteConfig.features.giveaway) {
-		return apiError("NOT_FOUND", "Giveaway is not available");
+		return apiError("NOT_FOUND", "Resource not found");
 	}
 
 	const ip = getClientIp(request);
@@ -32,8 +33,12 @@ export async function POST(request: NextRequest) {
 		return apiError("RATE_LIMITED", "Too many requests. Please try again later.");
 	}
 
+	const body = await safeParseJson(request);
+	if (!body || typeof body !== "object") {
+		return apiError("VALIDATION_ERROR", "Invalid JSON");
+	}
+
 	try {
-		const body = await request.json();
 		const { email, action, metadata, turnstileToken } = body as {
 			email?: string;
 			action?: string;
@@ -43,6 +48,17 @@ export async function POST(request: NextRequest) {
 
 		if (!email || !action) {
 			return apiError("VALIDATION_ERROR", "Email and action are required");
+		}
+
+		if (!isValidEmail(email)) {
+			return apiError("VALIDATION_ERROR", "Invalid email format");
+		}
+
+		const lengthErr =
+			validateLength(action, "Action", 100) ??
+			validateLength(metadata, "Metadata", 500);
+		if (lengthErr) {
+			return apiError("VALIDATION_ERROR", lengthErr);
 		}
 
 		if (!turnstileToken) {
@@ -75,23 +91,34 @@ export async function POST(request: NextRequest) {
 			return apiError("NOT_FOUND", "No giveaway entry found for this email");
 		}
 
-		// Determine bonus entries from giveaway page metadata
-		const actionType = action.startsWith("referral:") ? "referral" : action.replace("twitter_", "");
-		const bonusEntries = giveawayMeta?.bonusEntries?.[actionType] ?? 1;
-
-		await recordGiveawayAction({
-			entryId: entry.id,
-			action,
-			bonusEntries,
-			metadata,
-		});
-
-		return apiSuccess({ success: true });
-	} catch (err) {
-		// Handle unique constraint violation (duplicate action)
-		if (err instanceof Error && err.message.includes("UNIQUE")) {
+		// Check for duplicate action before inserting
+		const existingActions = await getGiveawayActions(entry.id);
+		if (existingActions.some((a) => a.action === action)) {
 			return apiError("DUPLICATE_ACTION", "This action has already been completed");
 		}
+
+		// Determine bonus entries from giveaway page metadata
+		// Look up by full action name first, then by stripped name for backwards compat
+		const actionKey = action.startsWith("referral:") ? "referral" : action;
+		const bonusEntries = giveawayMeta?.bonusEntries?.[actionKey] ?? giveawayMeta?.bonusEntries?.[action.replace("twitter_", "")] ?? 1;
+
+		try {
+			await recordGiveawayAction({
+				entryId: entry.id,
+				action,
+				bonusEntries,
+				metadata,
+			});
+		} catch (err) {
+			// Catch unique constraint violation (duplicate action) from DB
+			if (err instanceof Error && err.message.includes("UNIQUE constraint failed")) {
+				return apiError("DUPLICATE_ACTION", "This action has already been completed");
+			}
+			throw err;
+		}
+
+		return apiSuccess({ success: true }, 201);
+	} catch {
 		return apiError("INTERNAL_ERROR", "An unexpected error occurred");
 	}
 }

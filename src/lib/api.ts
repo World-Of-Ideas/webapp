@@ -34,13 +34,9 @@ export function apiError(code: ErrorCode, message: string) {
 	);
 }
 
-/** Extract client IP from request headers (CF-Connecting-IP, X-Forwarded-For, or fallback). */
+/** Extract client IP from request headers. Only trust CF-Connecting-IP (set by Cloudflare). */
 export function getClientIp(request: NextRequest): string {
-	return (
-		request.headers.get("cf-connecting-ip") ??
-		request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-		"unknown"
-	);
+	return request.headers.get("cf-connecting-ip") ?? "unknown";
 }
 
 /** Parse a query param as an integer, clamped to [min, max] with a fallback for NaN. */

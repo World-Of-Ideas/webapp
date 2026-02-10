@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { apiSuccess, apiError, clampInt } from "../api";
+import { NextRequest } from "next/server";
+import { apiSuccess, apiError, clampInt, getClientIp } from "../api";
 
 describe("apiSuccess", () => {
 	it("returns JSON with ok: true and data", async () => {
@@ -43,6 +44,60 @@ describe("apiError", () => {
 	it("returns INTERNAL_ERROR with 500 status", async () => {
 		const response = apiError("INTERNAL_ERROR", "oops");
 		expect(response.status).toBe(500);
+	});
+
+	it("returns TURNSTILE_FAILED with 400 status", async () => {
+		const response = apiError("TURNSTILE_FAILED", "captcha failed");
+		const body = await response.json();
+		expect(body).toEqual({
+			ok: false,
+			error: { code: "TURNSTILE_FAILED", message: "captcha failed" },
+		});
+		expect(response.status).toBe(400);
+	});
+
+	it("returns GIVEAWAY_ENDED with 410 status", async () => {
+		const response = apiError("GIVEAWAY_ENDED", "ended");
+		const body = await response.json();
+		expect(body).toEqual({
+			ok: false,
+			error: { code: "GIVEAWAY_ENDED", message: "ended" },
+		});
+		expect(response.status).toBe(410);
+	});
+
+	it("returns UNAUTHORIZED with 401 status", async () => {
+		const response = apiError("UNAUTHORIZED", "not allowed");
+		const body = await response.json();
+		expect(body).toEqual({
+			ok: false,
+			error: { code: "UNAUTHORIZED", message: "not allowed" },
+		});
+		expect(response.status).toBe(401);
+	});
+
+	it("returns RATE_LIMITED with 429 status", async () => {
+		const response = apiError("RATE_LIMITED", "slow down");
+		const body = await response.json();
+		expect(body).toEqual({
+			ok: false,
+			error: { code: "RATE_LIMITED", message: "slow down" },
+		});
+		expect(response.status).toBe(429);
+	});
+});
+
+describe("getClientIp", () => {
+	it("returns cf-connecting-ip header value when present", () => {
+		const request = new NextRequest("http://localhost", {
+			headers: { "cf-connecting-ip": "1.2.3.4" },
+		});
+		expect(getClientIp(request)).toBe("1.2.3.4");
+	});
+
+	it("returns 'unknown' when cf-connecting-ip header is missing", () => {
+		const request = new NextRequest("http://localhost");
+		expect(getClientIp(request)).toBe("unknown");
 	});
 });
 

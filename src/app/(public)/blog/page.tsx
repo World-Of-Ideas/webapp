@@ -5,6 +5,7 @@ import { siteConfig } from "@/config/site";
 import { getPublishedPosts } from "@/lib/blog";
 import { PostCard } from "@/components/blog/post-card";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
+import { JsonLd } from "@/components/shared/json-ld";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
@@ -14,6 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 			title: `Blog | ${siteConfig.name}`,
 			description: `Read the latest articles and updates from ${siteConfig.name}.`,
 			url: `${siteConfig.url}/blog`,
+			images: [{ url: "/og-default.png", width: 1200, height: 630 }],
 		},
 		alternates: {
 			canonical: `${siteConfig.url}/blog`,
@@ -39,6 +41,16 @@ export default async function BlogPage({
 
 	return (
 		<>
+			<JsonLd
+				data={{
+					"@context": "https://schema.org",
+					"@type": "Blog",
+					name: "Blog",
+					url: `${siteConfig.url}/blog`,
+					description: `Read the latest articles and updates from ${siteConfig.name}.`,
+				}}
+			/>
+
 			<Breadcrumbs
 				items={[
 					{ label: "Home", href: "/" },

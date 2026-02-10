@@ -2,7 +2,8 @@ import { NextRequest } from "next/server";
 import { getEnv } from "@/db";
 import { apiSuccess, apiError } from "@/lib/api";
 import { requireAdminSession } from "@/lib/admin-auth";
-import { validateUpload, uploadToR2, getPublicUrl } from "@/lib/r2";
+import { validateUpload, validateMagicBytes, uploadToR2, getPublicUrl } from "@/lib/r2";
+import { validateR2Path } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
 	if (!(await requireAdminSession())) {
@@ -23,10 +24,28 @@ export async function POST(request: NextRequest) {
 			return apiError("VALIDATION_ERROR", validationError);
 		}
 
-		const key = path ?? `uploads/${crypto.randomUUID()}/${file.name}`;
+		// Verify file content matches claimed MIME type
+		const buffer = await file.arrayBuffer();
+		if (!validateMagicBytes(buffer, file.type)) {
+			return apiError("VALIDATION_ERROR", "File content does not match declared type");
+		}
+
+		let key: string;
+		if (path) {
+			const pathError = validateR2Path(path);
+			if (pathError) {
+				return apiError("VALIDATION_ERROR", pathError);
+			}
+			key = path;
+		} else {
+			// Sanitize filename: allow only alphanumeric, dots, hyphens, underscores
+			const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+			key = `uploads/${crypto.randomUUID()}/${safeName}`;
+		}
+
 		const env = await getEnv();
 
-		await uploadToR2(env.ASSETS_BUCKET, key, file);
+		await uploadToR2(env.ASSETS_BUCKET, key, file, buffer);
 		const url = getPublicUrl(env.R2_PUBLIC_URL, key);
 
 		return apiSuccess({ url, key }, 201);

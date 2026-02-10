@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { getAllPosts, createPost } from "@/lib/blog";
+import { validatePostBody } from "@/lib/validation";
 
 export async function GET() {
 	if (!(await requireAdminSession())) {
@@ -18,8 +19,10 @@ export async function POST(request: NextRequest) {
 	}
 
 	try {
-		const body = await request.json() as Parameters<typeof createPost>[0];
-		const post = await createPost(body);
+		const body = await request.json();
+		const bodyError = validatePostBody(body);
+		if (bodyError) return apiError("VALIDATION_ERROR", bodyError);
+		const post = await createPost(body as Parameters<typeof createPost>[0]);
 		return apiSuccess(post, 201);
 	} catch {
 		return apiError("INTERNAL_ERROR", "Failed to create post");

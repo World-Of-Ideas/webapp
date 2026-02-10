@@ -7,10 +7,11 @@ import { createContactSubmission } from "@/lib/contact";
 import { enqueueEmail } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendMetaConversionEvent, sendGaConversionEvent } from "@/lib/tracking";
+import { isValidEmail, safeParseJson, validateLength } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
 	if (!siteConfig.features.contact) {
-		return apiError("NOT_FOUND", "Contact form is not available");
+		return apiError("NOT_FOUND", "Resource not found");
 	}
 
 	const ip = getClientIp(request);
@@ -18,8 +19,12 @@ export async function POST(request: NextRequest) {
 		return apiError("RATE_LIMITED", "Too many requests. Please try again later.");
 	}
 
+	const body = await safeParseJson(request);
+	if (!body || typeof body !== "object") {
+		return apiError("VALIDATION_ERROR", "Invalid JSON");
+	}
+
 	try {
-		const body = await request.json();
 		const { name, email, message, turnstileToken, source } = body as {
 			name?: string;
 			email?: string;
@@ -30,6 +35,18 @@ export async function POST(request: NextRequest) {
 
 		if (!name || !email || !message) {
 			return apiError("VALIDATION_ERROR", "Name, email, and message are required");
+		}
+
+		if (!isValidEmail(email)) {
+			return apiError("VALIDATION_ERROR", "Invalid email format");
+		}
+
+		const lengthErr =
+			validateLength(name, "Name", 100) ??
+			validateLength(message, "Message", 5000) ??
+			validateLength(source, "Source", 255);
+		if (lengthErr) {
+			return apiError("VALIDATION_ERROR", lengthErr);
 		}
 
 		if (!turnstileToken) {

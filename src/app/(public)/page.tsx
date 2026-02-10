@@ -61,7 +61,7 @@ export default async function HomePage() {
 				}}
 			/>
 
-			<Breadcrumbs items={[{ label: "Home", href: "/" }]} />
+			{/* No breadcrumbs on home page — it IS the root */}
 
 			{/* Hero Section */}
 			<section className="px-6 py-24 text-center">

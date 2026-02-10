@@ -89,6 +89,7 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
 								onClick={() => moveBlock(i, -1)}
 								disabled={i === 0}
 								title="Move up"
+								aria-label="Move block up"
 							>
 								&#8593;
 							</Button>
@@ -99,6 +100,7 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
 								onClick={() => moveBlock(i, 1)}
 								disabled={i === blocks.length - 1}
 								title="Move down"
+								aria-label="Move block down"
 							>
 								&#8595;
 							</Button>
@@ -108,6 +110,7 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
 								size="icon-xs"
 								onClick={() => deleteBlock(i)}
 								title="Delete block"
+								aria-label="Remove block"
 							>
 								&times;
 							</Button>

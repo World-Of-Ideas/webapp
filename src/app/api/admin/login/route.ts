@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
 			return apiError("RATE_LIMITED", "Too many login attempts. Try again later.");
 		}
 
-		const body = await request.json();
+		let body;
+		try { body = await request.json(); } catch { return apiError("VALIDATION_ERROR", "Invalid JSON"); }
 		const { password } = body as { password?: string };
 
 		if (!password) {
@@ -34,10 +35,18 @@ export async function POST(request: NextRequest) {
 		const cookieStore = await cookies();
 		cookieStore.set("admin_session", sessionId, {
 			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
+			secure: process.env.NODE_ENV !== "development", // HTTPS always except local dev
 			sameSite: "strict",
-			path: "/",
+			path: "/admin",
 			maxAge: 60 * 60 * 24, // 24 hours
+		});
+		// Also set for admin API routes
+		cookieStore.set("admin_session", sessionId, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV !== "development",
+			sameSite: "strict",
+			path: "/api/admin",
+			maxAge: 60 * 60 * 24,
 		});
 
 		return apiSuccess({ success: true });

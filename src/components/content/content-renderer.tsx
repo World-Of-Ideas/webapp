@@ -17,25 +17,27 @@ export function ContentRenderer({ blocks }: ContentRendererProps) {
 	return (
 		<div className="prose prose-neutral max-w-none dark:prose-invert">
 			{blocks.map((block, index) => {
+				// Content blocks are read-only once rendered, so type+index is a stable key
+				const key = `${block.type}-${index}`;
 				switch (block.type) {
 					case "paragraph":
-						return <ParagraphBlock key={index} block={block} />;
+						return <ParagraphBlock key={key} block={block} />;
 					case "heading":
-						return <HeadingBlock key={index} block={block} />;
+						return <HeadingBlock key={key} block={block} />;
 					case "list":
-						return <ListBlock key={index} block={block} />;
+						return <ListBlock key={key} block={block} />;
 					case "image":
-						return <ImageBlock key={index} block={block} />;
+						return <ImageBlock key={key} block={block} />;
 					case "callout":
-						return <CalloutBlock key={index} block={block} />;
+						return <CalloutBlock key={key} block={block} />;
 					case "quote":
-						return <QuoteBlock key={index} block={block} />;
+						return <QuoteBlock key={key} block={block} />;
 					case "table":
-						return <TableBlock key={index} block={block} />;
+						return <TableBlock key={key} block={block} />;
 					case "cta":
-						return <CtaBlock key={index} block={block} />;
+						return <CtaBlock key={key} block={block} />;
 					case "download":
-						return <DownloadBlock key={index} block={block} />;
+						return <DownloadBlock key={key} block={block} />;
 					default:
 						return null;
 				}

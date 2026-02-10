@@ -47,6 +47,7 @@ export default async function GiveawayPage() {
 					name: `${siteConfig.name} Giveaway`,
 					url: `${siteConfig.url}/giveaway`,
 					description: `Enter the ${siteConfig.name} giveaway for a chance to win.`,
+					startDate: (metadata as Record<string, unknown> | null)?.startDate as string ?? page?.updatedAt ?? new Date().toISOString(),
 					...(endDate && { endDate }),
 					organizer: {
 						"@type": "Organization",

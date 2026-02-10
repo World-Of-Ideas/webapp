@@ -95,7 +95,7 @@ export function ImageUpload({ value, onChange, path }: ImageUploadProps) {
 			</div>
 
 			{error && (
-				<p className="text-sm text-destructive">{error}</p>
+				<p className="text-sm text-destructive" role="alert">{error}</p>
 			)}
 		</div>
 	);

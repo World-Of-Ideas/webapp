@@ -1,4 +1,4 @@
-export async function generateReferralCode(): Promise<string> {
+export function generateReferralCode(): string {
 	const bytes = new Uint8Array(6);
 	crypto.getRandomValues(bytes);
 	return Array.from(bytes)

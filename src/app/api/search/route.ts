@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 		return apiError("RATE_LIMITED", "Too many requests. Please try again later.");
 	}
 
-	const q = request.nextUrl.searchParams.get("q") ?? "";
+	const q = (request.nextUrl.searchParams.get("q") ?? "").trim();
 
 	if (q.length < 2) {
 		return apiError("VALIDATION_ERROR", "Query must be at least 2 characters");

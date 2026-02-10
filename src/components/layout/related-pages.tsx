@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { isSafeUrl } from "@/lib/utils";
 import type { RelatedPage } from "@/types/content";
 
 interface RelatedPagesProps {
@@ -13,7 +14,7 @@ export function RelatedPages({ pages }: RelatedPagesProps) {
 		<section className="my-12">
 			<h2 className="mb-6 text-2xl font-bold">Related</h2>
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-				{pages.map((page) => (
+				{pages.filter((page) => isSafeUrl(page.href)).map((page) => (
 					<Link key={page.href} href={page.href}>
 						<Card className="h-full transition-colors hover:bg-muted/50">
 							<CardHeader>

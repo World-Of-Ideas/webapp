@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { updatePage, deletePage, isSystemPage } from "@/lib/pages";
+import { validatePageBody } from "@/lib/validation";
 
 export async function PUT(
 	request: NextRequest,
@@ -13,8 +14,12 @@ export async function PUT(
 
 	try {
 		const { slug } = await params;
-		const body = await request.json() as Parameters<typeof updatePage>[1];
-		const page = await updatePage(slug, body);
+		const body = await request.json();
+		const bodyError = validatePageBody(body, false);
+		if (bodyError) return apiError("VALIDATION_ERROR", bodyError);
+		// Strip slug from body — slug is the PK and must not be changed via update
+		const { slug: _ignoredSlug, ...safeBody } = body as Record<string, unknown>;
+		const page = await updatePage(slug, safeBody as Parameters<typeof updatePage>[1]);
 		return apiSuccess(page);
 	} catch {
 		return apiError("INTERNAL_ERROR", "Failed to update page");
