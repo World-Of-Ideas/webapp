@@ -131,6 +131,22 @@ export const adminSessions = sqliteTable(
 	(table) => [index("idx_sessions_expires").on(table.expiresAt)],
 );
 
+// --- Site Settings (single-row config) ---
+
+export const siteSettings = sqliteTable("site_settings", {
+	id: integer("id").primaryKey().default(1),
+	name: text("name").notNull().default("Product Name"),
+	description: text("description").notNull().default(""),
+	author: text("author").notNull().default(""),
+	social: text("social").notNull().default("{}"),
+	productLinks: text("product_links").notNull().default("{}"),
+	features: text("features").notNull().default('{"waitlist":true,"giveaway":true,"blog":true,"contact":true}'),
+	ui: text("ui").notNull().default('{"search":true,"themeToggle":true}'),
+	theme: text("theme").notNull().default('{"preset":"bold","accentColor":"#9747ff","borderRadius":"0.625rem","headingWeight":"400","fontFamily":"inter","heroVariant":"gradient","headerVariant":"blur","footerVariant":"simple","postCardVariant":"bordered","ctaSectionVariant":"gradient"}'),
+	logoUrl: text("logo_url"),
+	updatedAt: text("updated_at").default(sql`(datetime('now'))`),
+});
+
 // --- Tracking Settings (single-row config) ---
 
 export const trackingSettings = sqliteTable("tracking_settings", {

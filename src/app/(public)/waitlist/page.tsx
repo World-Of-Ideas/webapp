@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { getPageBySlug } from "@/lib/pages";
 import { ContentRenderer } from "@/components/content/content-renderer";
 import { SignupForm } from "@/components/waitlist/signup-form";
@@ -11,12 +12,13 @@ import { JsonLd } from "@/components/shared/json-ld";
 import type { FAQ, RelatedPage } from "@/types/content";
 
 export async function generateMetadata(): Promise<Metadata> {
+	const settings = await getSiteSettings();
 	return {
 		title: "Join the Waitlist",
-		description: `Sign up for early access to ${siteConfig.name}. Be the first to know when we launch.`,
+		description: `Sign up for early access to ${settings.name}. Be the first to know when we launch.`,
 		openGraph: {
 			title: "Join the Waitlist",
-			description: `Sign up for early access to ${siteConfig.name}.`,
+			description: `Sign up for early access to ${settings.name}.`,
 			url: `${siteConfig.url}/waitlist`,
 		},
 		alternates: {
@@ -30,7 +32,8 @@ export default async function WaitlistPage({
 }: {
 	searchParams: Promise<{ ref?: string }>;
 }) {
-	if (!siteConfig.features.waitlist) {
+	const settings = await getSiteSettings();
+	if (!settings.features.waitlist) {
 		notFound();
 	}
 
@@ -46,7 +49,7 @@ export default async function WaitlistPage({
 				data={{
 					"@context": "https://schema.org",
 					"@type": "WebPage",
-					name: `Join the Waitlist | ${siteConfig.name}`,
+					name: `Join the Waitlist | ${settings.name}`,
 					url: `${siteConfig.url}/waitlist`,
 				}}
 			/>

@@ -2,18 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { getPublishedPosts } from "@/lib/blog";
 import { PostCard } from "@/components/blog/post-card";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { JsonLd } from "@/components/shared/json-ld";
 
 export async function generateMetadata(): Promise<Metadata> {
+	const settings = await getSiteSettings();
 	return {
 		title: "Blog",
-		description: `Read the latest articles and updates from ${siteConfig.name}.`,
+		description: `Read the latest articles and updates from ${settings.name}.`,
 		openGraph: {
 			title: "Blog",
-			description: `Read the latest articles and updates from ${siteConfig.name}.`,
+			description: `Read the latest articles and updates from ${settings.name}.`,
 			url: `${siteConfig.url}/blog`,
 			images: [{ url: "/og-default.png", width: 1200, height: 630 }],
 		},
@@ -30,7 +32,8 @@ export default async function BlogPage({
 }: {
 	searchParams: Promise<{ page?: string }>;
 }) {
-	if (!siteConfig.features.blog) {
+	const settings = await getSiteSettings();
+	if (!settings.features.blog) {
 		notFound();
 	}
 
@@ -47,7 +50,7 @@ export default async function BlogPage({
 					"@type": "Blog",
 					name: "Blog",
 					url: `${siteConfig.url}/blog`,
-					description: `Read the latest articles and updates from ${siteConfig.name}.`,
+					description: `Read the latest articles and updates from ${settings.name}.`,
 				}}
 			/>
 
@@ -61,13 +64,13 @@ export default async function BlogPage({
 			<div className="mx-auto max-w-[1128px] px-4 py-12 sm:px-6 sm:py-16">
 				<h1 className="text-3xl font-normal tracking-tight sm:text-4xl md:text-5xl">Blog</h1>
 				<p className="mt-2 text-base text-muted-foreground sm:text-lg">
-					The latest articles and updates from {siteConfig.name}.
+					The latest articles and updates from {settings.name}.
 				</p>
 
 				{posts.length > 0 ? (
 					<div className="mt-12 grid gap-8 md:grid-cols-2">
 						{posts.map((post) => (
-							<PostCard key={post.slug} post={post} />
+							<PostCard key={post.slug} post={post} variant={settings.theme.postCardVariant} />
 						))}
 					</div>
 				) : (

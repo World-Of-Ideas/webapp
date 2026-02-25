@@ -1,25 +1,35 @@
 import Link from "next/link";
-import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { headerLinks, headerCtaButtons } from "@/config/navigation";
+import { cn } from "@/lib/utils";
 import { MobileNav } from "./mobile-nav";
 import { SearchTrigger } from "./search-trigger";
 import { ThemeToggle } from "./theme-toggle";
 import { NavLinks } from "./nav-links";
+import type { ThemeSettings } from "@/types/site-settings";
 
-export function Header() {
+const headerVariantStyles: Record<ThemeSettings["headerVariant"], string> = {
+	solid: "bg-background border-b border-border",
+	blur: "bg-background/80 backdrop-blur-md border-b border-border/50 dark:bg-black/30 dark:border-white/10",
+	transparent: "bg-transparent border-b border-transparent",
+};
+
+export async function Header() {
+	const settings = await getSiteSettings();
+
 	const filteredLinks = headerLinks.filter(
-		(link) => !link.feature || siteConfig.features[link.feature],
+		(link) => !link.feature || settings.features[link.feature],
 	);
 
 	const filteredCtas = headerCtaButtons.filter(
-		(btn) => !btn.feature || siteConfig.features[btn.feature],
+		(btn) => !btn.feature || settings.features[btn.feature],
 	);
 
 	return (
-		<header className="fixed top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md dark:bg-black/30 dark:border-white/10">
+		<header className={cn("fixed top-0 z-50 w-full", headerVariantStyles[settings.theme.headerVariant] ?? headerVariantStyles.blur)}>
 			<div className="mx-auto flex h-14 max-w-[1440px] items-center px-4">
 				<Link href="/" className="mr-3 text-lg font-semibold tracking-tight md:mr-6">
-					{siteConfig.name}
+					{settings.name}
 				</Link>
 
 				<nav aria-label="Main navigation" className="hidden flex-1 justify-center md:flex">
@@ -27,8 +37,8 @@ export function Header() {
 				</nav>
 
 				<div className="ml-auto flex items-center gap-1 md:ml-0">
-					{siteConfig.ui.search && <SearchTrigger />}
-					{siteConfig.ui.themeToggle && <ThemeToggle />}
+					{settings.ui.search && <SearchTrigger />}
+					{settings.ui.themeToggle && <ThemeToggle />}
 
 					<div className="hidden items-center gap-2 md:flex">
 						{filteredCtas.map((cta) => (
@@ -49,7 +59,8 @@ export function Header() {
 					<MobileNav
 						links={filteredLinks}
 						ctaButtons={filteredCtas}
-						showSearch={siteConfig.ui.search}
+						showSearch={settings.ui.search}
+						siteName={settings.name}
 					/>
 				</div>
 			</div>

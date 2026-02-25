@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { getPublishedPageBySlug, getChildPages } from "@/lib/pages";
 import { FaqSection } from "@/components/layout/faq-section";
 import { RelatedPages } from "@/components/layout/related-pages";
@@ -63,8 +64,12 @@ export default async function CatchAllPage({
 	const { title, description, content, faqs: rawFaqs, relatedPages: rawRelated, layout: rawLayout } = page;
 	const faqs = (rawFaqs ?? []) as FAQ[];
 	const relatedPages = (rawRelated ?? []) as RelatedPage[];
-	const children = await getChildPages(page.slug);
+	const [children, settings] = await Promise.all([
+		getChildPages(page.slug),
+		getSiteSettings(),
+	]);
 	const layout = (rawLayout ?? "default") as PageLayout;
+	const cardVariant = settings.theme.postCardVariant;
 
 	// Build breadcrumbs from slug hierarchy (all except current page)
 	const breadcrumbItems = [{ label: "Home", href: "/" }];
@@ -91,6 +96,7 @@ export default async function CatchAllPage({
 						description={description}
 						content={content}
 						children={children}
+						cardVariant={cardVariant}
 					/>
 				);
 			case "pillar":
@@ -100,6 +106,7 @@ export default async function CatchAllPage({
 						description={description}
 						content={content}
 						children={children}
+						cardVariant={cardVariant}
 					/>
 				);
 			default:

@@ -2,9 +2,11 @@ import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
 import { getPublishedPosts } from "@/lib/blog";
 import { getPublishedContentPages, isSystemPage } from "@/lib/pages";
+import { getSiteSettingsDirect } from "@/lib/site-settings";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const baseUrl = siteConfig.url;
+	const settings = await getSiteSettingsDirect();
 	const entries: MetadataRoute.Sitemap = [];
 
 	// Home page — always included
@@ -16,7 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	});
 
 	// Static feature-guarded pages
-	if (siteConfig.features.waitlist) {
+	if (settings.features.waitlist) {
 		entries.push({
 			url: `${baseUrl}/waitlist`,
 			lastModified: new Date(),
@@ -25,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		});
 	}
 
-	if (siteConfig.features.giveaway) {
+	if (settings.features.giveaway) {
 		entries.push({
 			url: `${baseUrl}/giveaway`,
 			lastModified: new Date(),
@@ -34,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		});
 	}
 
-	if (siteConfig.features.contact) {
+	if (settings.features.contact) {
 		entries.push({
 			url: `${baseUrl}/contact`,
 			lastModified: new Date(),
@@ -43,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		});
 	}
 
-	if (siteConfig.features.blog) {
+	if (settings.features.blog) {
 		entries.push({
 			url: `${baseUrl}/blog`,
 			lastModified: new Date(),
@@ -68,7 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	});
 
 	// Published blog posts
-	if (siteConfig.features.blog) {
+	if (settings.features.blog) {
 		// Fetch all published posts (large limit to get everything)
 		const { items: posts } = await getPublishedPosts(1, 10000);
 		for (const post of posts) {

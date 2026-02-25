@@ -2,14 +2,14 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { validateSession } from "@/lib/admin";
-import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { LogoutButton } from "@/components/admin/logout-button";
 import { cn } from "@/lib/utils";
 
 interface AdminSidebarLink {
 	label: string;
 	href: string;
-	feature?: keyof typeof siteConfig.features;
+	feature?: string;
 }
 
 const sidebarLinks: AdminSidebarLink[] = [
@@ -19,6 +19,7 @@ const sidebarLinks: AdminSidebarLink[] = [
 	{ label: "Subscribers", href: "/admin/subscribers", feature: "waitlist" },
 	{ label: "Giveaway", href: "/admin/giveaway", feature: "giveaway" },
 	{ label: "Tracking", href: "/admin/tracking" },
+	{ label: "Settings", href: "/admin/settings" },
 	{ label: "SEO Audit", href: "/admin/seo" },
 ];
 
@@ -48,8 +49,10 @@ export default async function AdminLayout({
 		return <>{children}</>;
 	}
 
+	const settings = await getSiteSettings();
+
 	const visibleLinks = sidebarLinks.filter(
-		(link) => !link.feature || siteConfig.features[link.feature],
+		(link) => !link.feature || settings.features[link.feature],
 	);
 
 	return (
@@ -61,7 +64,7 @@ export default async function AdminLayout({
 						href="/admin/dashboard"
 						className="text-lg font-semibold"
 					>
-						{siteConfig.name} Admin
+						{settings.name} Admin
 					</Link>
 				</div>
 

@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { ReferralDashboard } from "@/components/waitlist/referral-dashboard";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 
 export async function generateMetadata(): Promise<Metadata> {
+	const settings = await getSiteSettings();
 	return {
 		title: "Your Waitlist Position",
-		description: `Track your waitlist position and share your referral link for ${siteConfig.name}.`,
+		description: `Track your waitlist position and share your referral link for ${settings.name}.`,
 		openGraph: {
 			title: "Your Waitlist Position",
-			description: `Track your waitlist position and share your referral link for ${siteConfig.name}.`,
+			description: `Track your waitlist position and share your referral link for ${settings.name}.`,
 			url: `${siteConfig.url}/waitlist`,
 		},
 		alternates: {
@@ -25,7 +27,8 @@ export default async function ReferralPage({
 }: {
 	params: Promise<{ code: string }>;
 }) {
-	if (!siteConfig.features.waitlist) {
+	const settings = await getSiteSettings();
+	if (!settings.features.waitlist) {
 		notFound();
 	}
 

@@ -1,8 +1,10 @@
 import { siteConfig } from "@/config/site";
+import { getSiteSettingsDirect } from "@/lib/site-settings";
 import { getRecentPosts } from "@/lib/blog";
 
 export async function GET() {
-	if (!siteConfig.features.blog) {
+	const settings = await getSiteSettingsDirect();
+	if (!settings.features.blog) {
 		return new Response("Not Found", { status: 404 });
 	}
 
@@ -20,8 +22,8 @@ export async function GET() {
 
 	const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>${escapeXml(siteConfig.name)}</title>
-  <subtitle>${escapeXml(siteConfig.description)}</subtitle>
+  <title>${escapeXml(settings.name)}</title>
+  <subtitle>${escapeXml(settings.description)}</subtitle>
   <link href="${baseUrl}/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="${baseUrl}" rel="alternate" type="text/html"/>
   <id>${baseUrl}/</id>

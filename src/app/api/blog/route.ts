@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
-import { siteConfig } from "@/config/site";
 import { apiSuccess, apiError, clampInt } from "@/lib/api";
+import { getSiteSettingsDirect } from "@/lib/site-settings";
 import { getPublishedPosts } from "@/lib/blog";
 
 export async function GET(request: NextRequest) {
-	if (!siteConfig.features.blog) {
+	if (!(await getSiteSettingsDirect()).features.blog) {
 		return apiError("NOT_FOUND", "Blog is not available");
 	}
 

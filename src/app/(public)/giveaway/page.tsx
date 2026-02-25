@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { getPageBySlug } from "@/lib/pages";
 import { ContentRenderer } from "@/components/content/content-renderer";
 import { CountdownTimer } from "@/components/giveaway/countdown-timer";
@@ -12,12 +13,13 @@ import { JsonLd } from "@/components/shared/json-ld";
 import type { FAQ, RelatedPage } from "@/types/content";
 
 export async function generateMetadata(): Promise<Metadata> {
+	const settings = await getSiteSettings();
 	return {
 		title: "Giveaway",
-		description: `Enter the ${siteConfig.name} giveaway for a chance to win.`,
+		description: `Enter the ${settings.name} giveaway for a chance to win.`,
 		openGraph: {
 			title: "Giveaway",
-			description: `Enter the ${siteConfig.name} giveaway for a chance to win.`,
+			description: `Enter the ${settings.name} giveaway for a chance to win.`,
 			url: `${siteConfig.url}/giveaway`,
 		},
 		alternates: {
@@ -27,7 +29,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function GiveawayPage() {
-	if (!siteConfig.features.giveaway) {
+	const settings = await getSiteSettings();
+	if (!settings.features.giveaway) {
 		notFound();
 	}
 
@@ -44,14 +47,14 @@ export default async function GiveawayPage() {
 				data={{
 					"@context": "https://schema.org",
 					"@type": "Event",
-					name: `${siteConfig.name} Giveaway`,
+					name: `${settings.name} Giveaway`,
 					url: `${siteConfig.url}/giveaway`,
-					description: `Enter the ${siteConfig.name} giveaway for a chance to win.`,
+					description: `Enter the ${settings.name} giveaway for a chance to win.`,
 					startDate: (metadata as Record<string, unknown> | null)?.startDate as string ?? page?.updatedAt ?? new Date().toISOString(),
 					...(endDate && { endDate }),
 					organizer: {
 						"@type": "Organization",
-						name: siteConfig.name,
+						name: settings.name,
 						url: siteConfig.url,
 					},
 				}}

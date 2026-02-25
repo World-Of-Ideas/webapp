@@ -1,9 +1,7 @@
-import type { FeatureKey } from "./site";
-
 export interface NavLink {
 	label: string;
 	href: string;
-	feature?: FeatureKey;
+	feature?: string;
 }
 
 export interface FooterGroup {
@@ -15,7 +13,7 @@ export interface HeaderCtaButton {
 	label: string;
 	href: string;
 	variant: "primary" | "outline";
-	feature?: FeatureKey;
+	feature?: string;
 }
 
 export const headerLinks: NavLink[] = [

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { getPageBySlug } from "@/lib/pages";
 import { ContentRenderer } from "@/components/content/content-renderer";
 import { ContactForm } from "@/components/contact/contact-form";
@@ -11,12 +12,13 @@ import { JsonLd } from "@/components/shared/json-ld";
 import type { FAQ, RelatedPage } from "@/types/content";
 
 export async function generateMetadata(): Promise<Metadata> {
+	const settings = await getSiteSettings();
 	return {
 		title: "Contact",
-		description: `Get in touch with the ${siteConfig.name} team. We'd love to hear from you.`,
+		description: `Get in touch with the ${settings.name} team. We'd love to hear from you.`,
 		openGraph: {
 			title: "Contact",
-			description: `Get in touch with the ${siteConfig.name} team.`,
+			description: `Get in touch with the ${settings.name} team.`,
 			url: `${siteConfig.url}/contact`,
 		},
 		alternates: {
@@ -26,7 +28,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ContactPage() {
-	if (!siteConfig.features.contact) {
+	const settings = await getSiteSettings();
+	if (!settings.features.contact) {
 		notFound();
 	}
 
@@ -41,7 +44,7 @@ export default async function ContactPage() {
 				data={{
 					"@context": "https://schema.org",
 					"@type": "ContactPage",
-					name: `Contact | ${siteConfig.name}`,
+					name: `Contact | ${settings.name}`,
 					url: `${siteConfig.url}/contact`,
 				}}
 			/>

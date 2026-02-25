@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getEnv } from "@/db";
-import { siteConfig } from "@/config/site";
 import { apiSuccess, apiError, getClientIp } from "@/lib/api";
+import { getSiteSettingsDirect } from "@/lib/site-settings";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { generateReferralCode } from "@/lib/referral";
 import { createSubscriber, getSubscriberByEmail, incrementReferralCount, createSubscriberWithReferral } from "@/lib/waitlist";
@@ -11,7 +11,7 @@ import { sendMetaConversionEvent, sendGaConversionEvent } from "@/lib/tracking";
 import { isValidEmail, safeParseJson, validateLength } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
-	if (!siteConfig.features.waitlist) {
+	if (!(await getSiteSettingsDirect()).features.waitlist) {
 		return apiError("NOT_FOUND", "Resource not found");
 	}
 

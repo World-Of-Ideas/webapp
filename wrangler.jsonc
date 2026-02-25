@@ -18,6 +18,11 @@
 			"database_name": "webapp-local-db",
 			"database_id": "local",
 			"migrations_dir": "drizzle"
+		},
+		{
+			"binding": "NEXT_TAG_CACHE_D1",
+			"database_name": "webapp-local-db",
+			"database_id": "local"
 		}
 	],
 	"r2_buckets": [
@@ -41,6 +46,11 @@
 					"database_name": "webapp-uat-db",
 					"database_id": "<from terraform output>",
 					"migrations_dir": "drizzle"
+				},
+				{
+					"binding": "NEXT_TAG_CACHE_D1",
+					"database_name": "webapp-uat-db",
+					"database_id": "<from terraform output>"
 				}
 			],
 			"r2_buckets": [
@@ -61,6 +71,11 @@
 					"database_name": "webapp-prod-db",
 					"database_id": "<from terraform output>",
 					"migrations_dir": "drizzle"
+				},
+				{
+					"binding": "NEXT_TAG_CACHE_D1",
+					"database_name": "webapp-prod-db",
+					"database_id": "<from terraform output>"
 				}
 			],
 			"r2_buckets": [

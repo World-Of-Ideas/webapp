@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { getPageBySlug } from "@/lib/pages";
 import { ContentRenderer } from "@/components/content/content-renderer";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
@@ -9,12 +10,13 @@ import { RelatedPages } from "@/components/layout/related-pages";
 import type { FAQ, RelatedPage } from "@/types/content";
 
 export async function generateMetadata(): Promise<Metadata> {
+	const settings = await getSiteSettings();
 	return {
 		title: "Terms of Use",
-		description: `Terms of use for ${siteConfig.name}.`,
+		description: `Terms of use for ${settings.name}.`,
 		openGraph: {
 			title: "Terms of Use",
-			description: `Terms of use for ${siteConfig.name}.`,
+			description: `Terms of use for ${settings.name}.`,
 			url: `${siteConfig.url}/terms`,
 		},
 		alternates: {
@@ -24,6 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function TermsPage() {
+	const settings = await getSiteSettings();
 	const page = await getPageBySlug("terms");
 	const faqs = (page?.faqs as FAQ[] | null) ?? [];
 	const relatedPages = (page?.relatedPages as RelatedPage[] | null) ?? [];
@@ -34,9 +37,9 @@ export default async function TermsPage() {
 				data={{
 					"@context": "https://schema.org",
 					"@type": "WebPage",
-					name: `Terms of Use | ${siteConfig.name}`,
+					name: `Terms of Use | ${settings.name}`,
 					url: `${siteConfig.url}/terms`,
-					description: `Terms of use for ${siteConfig.name}.`,
+					description: `Terms of use for ${settings.name}.`,
 				}}
 			/>
 

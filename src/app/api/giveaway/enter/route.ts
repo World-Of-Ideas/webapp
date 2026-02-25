@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getEnv } from "@/db";
-import { siteConfig } from "@/config/site";
 import { apiSuccess, apiError, getClientIp } from "@/lib/api";
+import { getSiteSettingsDirect } from "@/lib/site-settings";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { createGiveawayEntry, getGiveawayEntryByEmail, isGiveawayEnded } from "@/lib/giveaway";
 import { getSubscriberByEmail } from "@/lib/waitlist";
@@ -12,7 +12,7 @@ import { sendMetaConversionEvent, sendGaConversionEvent } from "@/lib/tracking";
 import { isValidEmail, safeParseJson, validateLength } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
-	if (!siteConfig.features.giveaway) {
+	if (!(await getSiteSettingsDirect()).features.giveaway) {
 		return apiError("NOT_FOUND", "Resource not found");
 	}
 

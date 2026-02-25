@@ -103,7 +103,7 @@ db-recreate:          ## Recreate local DB from scratch: wipe + migrate + seed
 	npx wrangler d1 execute DB --local --file=src/db/seed.sql
 
 db-recreate-uat:      ## Recreate UAT DB from scratch: drop all + migrate + seed
-	npx wrangler d1 execute DB --env uat --remote --command "DROP TABLE IF EXISTS giveaway_actions; DROP TABLE IF EXISTS giveaway_entries; DROP TABLE IF EXISTS contact_submissions; DROP TABLE IF EXISTS admin_sessions; DROP TABLE IF EXISTS posts; DROP TABLE IF EXISTS pages; DROP TABLE IF EXISTS subscribers; DROP TABLE IF EXISTS tracking_settings; DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS sqlite_sequence; DELETE FROM _cf_KV;"
+	npx wrangler d1 execute DB --env uat --remote --command "DROP TABLE IF EXISTS giveaway_actions; DROP TABLE IF EXISTS giveaway_entries; DROP TABLE IF EXISTS contact_submissions; DROP TABLE IF EXISTS admin_sessions; DROP TABLE IF EXISTS posts; DROP TABLE IF EXISTS pages; DROP TABLE IF EXISTS subscribers; DROP TABLE IF EXISTS tracking_settings; DROP TABLE IF EXISTS site_settings; DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS sqlite_sequence; DELETE FROM _cf_KV;"
 	npx wrangler d1 migrations apply DB --env uat --remote
 	npx wrangler d1 execute DB --env uat --remote --file=src/db/seed.sql
 

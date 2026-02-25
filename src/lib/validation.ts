@@ -1,5 +1,7 @@
 /** Shared validation helpers for API routes. */
 
+import { isSafeUrl } from "./utils";
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function isValidEmail(email: string): boolean {
@@ -105,6 +107,141 @@ export function validatePageBody(body: unknown, requireSlug = true): string | nu
 			return "Layout must be one of: default, landing, listing, pillar";
 		}
 	}
+	return null;
+}
+
+const VALID_HERO_VARIANTS = ["centered", "gradient", "split"];
+const VALID_HEADER_VARIANTS = ["solid", "blur", "transparent"];
+const VALID_FOOTER_VARIANTS = ["simple", "columns", "dark"];
+const VALID_POST_CARD_VARIANTS = ["bordered", "filled", "minimal"];
+const VALID_CTA_VARIANTS = ["gradient", "solid", "outlined"];
+const VALID_FONT_FAMILIES = ["inter", "geist", "dm-sans", "space-grotesk"];
+const VALID_BORDER_RADII = ["0", "0.375rem", "0.5rem", "0.625rem", "9999px"];
+const VALID_HEADING_WEIGHTS = ["300", "400", "500", "600", "700"];
+const VALID_PRESET_KEYS = ["minimal", "bold", "corporate", "playful"];
+const VALID_SOCIAL_KEYS = ["twitter", "github", "discord", "instagram"];
+const VALID_PRODUCT_LINK_KEYS = ["appUrl", "appStoreUrl", "playStoreUrl"];
+const VALID_THEME_KEYS = new Set(["preset", "accentColor", "borderRadius", "headingWeight", "fontFamily", "heroVariant", "headerVariant", "footerVariant", "postCardVariant", "ctaSectionVariant"]);
+
+/** Validate site settings update body. Returns error message or null. */
+export function validateSiteSettingsBody(body: unknown): string | null {
+	if (!body || typeof body !== "object") return "Invalid request body";
+	const b = body as Record<string, unknown>;
+
+	if (b.name !== undefined) {
+		if (typeof b.name !== "string" || !b.name) return "Name is required";
+		if (b.name.length > 200) return "Name is too long (max 200 characters)";
+	}
+	if (b.description !== undefined) {
+		if (typeof b.description !== "string") return "Description must be a string";
+		if (b.description.length > 500) return "Description is too long (max 500 characters)";
+	}
+	if (b.author !== undefined) {
+		if (typeof b.author !== "string") return "Author must be a string";
+		if (b.author.length > 200) return "Author is too long (max 200 characters)";
+	}
+	if (b.social !== undefined) {
+		if (typeof b.social !== "object" || b.social === null || Array.isArray(b.social)) return "Social must be an object";
+		for (const [key, val] of Object.entries(b.social as Record<string, unknown>)) {
+			if (!VALID_SOCIAL_KEYS.includes(key)) return `Unknown social key: ${key}`;
+			if (typeof val !== "string") return `social.${key} must be a string`;
+			if (val.length > 200) return `social.${key} is too long (max 200 characters)`;
+			if (key === "twitter") {
+				if (val && !/^@?[a-zA-Z0-9_]{1,15}$/.test(val)) return "social.twitter must be a valid handle (e.g. @username)";
+			} else if (val && !isSafeUrl(val)) {
+				return `social.${key} must be a valid URL`;
+			}
+		}
+	}
+	if (b.productLinks !== undefined) {
+		if (typeof b.productLinks !== "object" || b.productLinks === null || Array.isArray(b.productLinks)) return "productLinks must be an object";
+		for (const [key, val] of Object.entries(b.productLinks as Record<string, unknown>)) {
+			if (!VALID_PRODUCT_LINK_KEYS.includes(key)) return `Unknown productLinks key: ${key}`;
+			if (typeof val !== "string") return `productLinks.${key} must be a string`;
+			if (val.length > 500) return `productLinks.${key} is too long (max 500 characters)`;
+			if (val && !isSafeUrl(val)) return `productLinks.${key} must be a valid URL`;
+		}
+	}
+	if (b.features !== undefined) {
+		if (typeof b.features !== "object" || b.features === null || Array.isArray(b.features)) return "Features must be an object";
+		const featureEntries = Object.entries(b.features as Record<string, unknown>);
+		if (featureEntries.length > 20) return "Too many feature keys (max 20)";
+		for (const [key, val] of featureEntries) {
+			if (key.length > 50) return `Feature key "${key.slice(0, 20)}..." is too long (max 50 characters)`;
+			if (typeof val !== "boolean") return `features.${key} must be a boolean`;
+		}
+	}
+	if (b.ui !== undefined) {
+		if (typeof b.ui !== "object" || b.ui === null || Array.isArray(b.ui)) return "UI must be an object";
+		const uiEntries = Object.entries(b.ui as Record<string, unknown>);
+		if (uiEntries.length > 20) return "Too many UI keys (max 20)";
+		for (const [key, val] of uiEntries) {
+			if (key.length > 50) return `UI key "${key.slice(0, 20)}..." is too long (max 50 characters)`;
+			if (typeof val !== "boolean") return `ui.${key} must be a boolean`;
+		}
+	}
+	if (b.theme !== undefined) {
+		if (typeof b.theme !== "object" || b.theme === null || Array.isArray(b.theme)) return "Theme must be an object";
+		const t = b.theme as Record<string, unknown>;
+		for (const key of Object.keys(t)) {
+			if (!VALID_THEME_KEYS.has(key)) return `Unknown theme key: ${key}`;
+		}
+		if (t.preset !== undefined) {
+			if (typeof t.preset !== "string" || !VALID_PRESET_KEYS.includes(t.preset)) {
+				return `theme.preset must be one of: ${VALID_PRESET_KEYS.join(", ")}`;
+			}
+		}
+		if (t.accentColor !== undefined) {
+			if (typeof t.accentColor !== "string") return "theme.accentColor must be a string";
+			if (!/^#[0-9a-fA-F]{6}$/.test(t.accentColor)) return "theme.accentColor must be a valid hex color (e.g. #9747ff)";
+		}
+		if (t.borderRadius !== undefined) {
+			if (typeof t.borderRadius !== "string" || !VALID_BORDER_RADII.includes(t.borderRadius)) {
+				return `theme.borderRadius must be one of: ${VALID_BORDER_RADII.join(", ")}`;
+			}
+		}
+		if (t.headingWeight !== undefined) {
+			if (typeof t.headingWeight !== "string" || !VALID_HEADING_WEIGHTS.includes(t.headingWeight)) {
+				return `theme.headingWeight must be one of: ${VALID_HEADING_WEIGHTS.join(", ")}`;
+			}
+		}
+		if (t.fontFamily !== undefined) {
+			if (typeof t.fontFamily !== "string" || !VALID_FONT_FAMILIES.includes(t.fontFamily)) {
+				return `theme.fontFamily must be one of: ${VALID_FONT_FAMILIES.join(", ")}`;
+			}
+		}
+		if (t.heroVariant !== undefined) {
+			if (typeof t.heroVariant !== "string" || !VALID_HERO_VARIANTS.includes(t.heroVariant)) {
+				return `theme.heroVariant must be one of: ${VALID_HERO_VARIANTS.join(", ")}`;
+			}
+		}
+		if (t.headerVariant !== undefined) {
+			if (typeof t.headerVariant !== "string" || !VALID_HEADER_VARIANTS.includes(t.headerVariant)) {
+				return `theme.headerVariant must be one of: ${VALID_HEADER_VARIANTS.join(", ")}`;
+			}
+		}
+		if (t.footerVariant !== undefined) {
+			if (typeof t.footerVariant !== "string" || !VALID_FOOTER_VARIANTS.includes(t.footerVariant)) {
+				return `theme.footerVariant must be one of: ${VALID_FOOTER_VARIANTS.join(", ")}`;
+			}
+		}
+		if (t.postCardVariant !== undefined) {
+			if (typeof t.postCardVariant !== "string" || !VALID_POST_CARD_VARIANTS.includes(t.postCardVariant)) {
+				return `theme.postCardVariant must be one of: ${VALID_POST_CARD_VARIANTS.join(", ")}`;
+			}
+		}
+		if (t.ctaSectionVariant !== undefined) {
+			if (typeof t.ctaSectionVariant !== "string" || !VALID_CTA_VARIANTS.includes(t.ctaSectionVariant)) {
+				return `theme.ctaSectionVariant must be one of: ${VALID_CTA_VARIANTS.join(", ")}`;
+			}
+		}
+	}
+	if (b.logoUrl !== undefined && b.logoUrl !== null) {
+		if (typeof b.logoUrl !== "string") return "logoUrl must be a string or null";
+		if (b.logoUrl.length > 500) return "logoUrl is too long (max 500 characters)";
+		if (!isSafeUrl(b.logoUrl)) return "logoUrl must be a valid URL";
+	}
+
 	return null;
 }
 

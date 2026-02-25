@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { LoginForm } from "@/components/admin/login-form";
 import {
 	Card,
@@ -9,9 +9,12 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 
-export const metadata: Metadata = {
-	title: `Admin Login | ${siteConfig.name}`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const settings = await getSiteSettings();
+	return {
+		title: `Admin Login | ${settings.name}`,
+	};
+}
 
 export default function AdminLoginPage() {
 	return (

@@ -5,16 +5,16 @@ import Link from "next/link";
 import { Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { siteConfig } from "@/config/site";
 import type { NavLink, HeaderCtaButton } from "@/config/navigation";
 
 interface MobileNavProps {
 	links: NavLink[];
 	ctaButtons?: HeaderCtaButton[];
 	showSearch?: boolean;
+	siteName: string;
 }
 
-export function MobileNav({ links, ctaButtons = [], showSearch = true }: MobileNavProps) {
+export function MobileNav({ links, ctaButtons = [], showSearch = true, siteName }: MobileNavProps) {
 	const [open, setOpen] = useState(false);
 
 	return (
@@ -25,7 +25,7 @@ export function MobileNav({ links, ctaButtons = [], showSearch = true }: MobileN
 				</Button>
 			</SheetTrigger>
 			<SheetContent side="right">
-				<SheetTitle className="font-bold">{siteConfig.name}</SheetTitle>
+				<SheetTitle className="font-bold">{siteName}</SheetTitle>
 				<nav aria-label="Main navigation" className="mt-6 flex flex-col gap-4">
 					{showSearch && (
 						<button

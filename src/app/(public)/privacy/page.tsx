@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { getPageBySlug } from "@/lib/pages";
 import { ContentRenderer } from "@/components/content/content-renderer";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
@@ -9,12 +10,13 @@ import { RelatedPages } from "@/components/layout/related-pages";
 import type { FAQ, RelatedPage } from "@/types/content";
 
 export async function generateMetadata(): Promise<Metadata> {
+	const settings = await getSiteSettings();
 	return {
 		title: "Privacy Policy",
-		description: `Privacy policy for ${siteConfig.name}.`,
+		description: `Privacy policy for ${settings.name}.`,
 		openGraph: {
 			title: "Privacy Policy",
-			description: `Privacy policy for ${siteConfig.name}.`,
+			description: `Privacy policy for ${settings.name}.`,
 			url: `${siteConfig.url}/privacy`,
 		},
 		alternates: {
@@ -24,6 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PrivacyPage() {
+	const settings = await getSiteSettings();
 	const page = await getPageBySlug("privacy");
 	const faqs = (page?.faqs as FAQ[] | null) ?? [];
 	const relatedPages = (page?.relatedPages as RelatedPage[] | null) ?? [];
@@ -34,9 +37,9 @@ export default async function PrivacyPage() {
 				data={{
 					"@context": "https://schema.org",
 					"@type": "WebPage",
-					name: `Privacy Policy | ${siteConfig.name}`,
+					name: `Privacy Policy | ${settings.name}`,
 					url: `${siteConfig.url}/privacy`,
-					description: `Privacy policy for ${siteConfig.name}.`,
+					description: `Privacy policy for ${settings.name}.`,
 				}}
 			/>
 

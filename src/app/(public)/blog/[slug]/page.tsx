@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { getPublishedPostBySlug } from "@/lib/blog";
 import { ContentRenderer } from "@/components/content/content-renderer";
 import { FaqSection } from "@/components/layout/faq-section";
@@ -53,7 +54,8 @@ export default async function BlogPostPage({
 }: {
 	params: Promise<{ slug: string }>;
 }) {
-	if (!siteConfig.features.blog) {
+	const settings = await getSiteSettings();
+	if (!settings.features.blog) {
 		notFound();
 	}
 
@@ -84,7 +86,7 @@ export default async function BlogPostPage({
 					},
 					publisher: {
 						"@type": "Organization",
-						name: siteConfig.name,
+						name: settings.name,
 						url: siteConfig.url,
 					},
 					...(post.coverImage && {

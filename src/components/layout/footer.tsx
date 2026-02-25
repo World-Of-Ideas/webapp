@@ -1,31 +1,40 @@
 import Link from "next/link";
-import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { footerGroups } from "@/config/navigation";
 import { getPublishedContentPages, isSystemPage } from "@/lib/pages";
 import { getTrackingSettings } from "@/lib/tracking";
 import { CookiePreferencesButton } from "@/components/shared/cookie-preferences-button";
 import { TwitterIcon, GitHubIcon, DiscordIcon, InstagramIcon } from "./social-icons";
+import { cn } from "@/lib/utils";
+import type { ThemeSettings } from "@/types/site-settings";
+
+const footerVariantStyles: Record<ThemeSettings["footerVariant"], string> = {
+	simple: "border-t bg-muted/50 dark:bg-zinc-950",
+	columns: "border-t bg-muted/30 dark:bg-zinc-900",
+	dark: "bg-zinc-950 text-zinc-100 dark",
+};
 
 export async function Footer() {
-	const [contentPages, trackingSettings] = await Promise.all([
+	const [contentPages, trackingSettings, settings] = await Promise.all([
 		getPublishedContentPages().then((pages) => pages.filter((p) => !isSystemPage(p.slug))),
 		getTrackingSettings(),
+		getSiteSettings(),
 	]);
 	return (
-		<footer className="border-t bg-muted/50 dark:bg-zinc-950">
+		<footer className={cn(footerVariantStyles[settings.theme.footerVariant] ?? footerVariantStyles.simple)}>
 			<div className="mx-auto max-w-[1440px] px-4 py-12 sm:px-6">
 				<div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
 					<div>
 						<Link href="/" className="text-lg font-semibold">
-							{siteConfig.name}
+							{settings.name}
 						</Link>
 						<p className="mt-2 text-sm text-muted-foreground">
-							{siteConfig.description}
+							{settings.description}
 						</p>
 						<div className="mt-4 flex gap-3">
-							{siteConfig.social.twitter && (
+							{settings.social.twitter && (
 								<Link
-									href={`https://twitter.com/${siteConfig.social.twitter.replace("@", "")}`}
+									href={`https://twitter.com/${settings.social.twitter.replace("@", "")}`}
 									className="text-muted-foreground transition-colors hover:text-foreground"
 									target="_blank"
 									rel="noopener noreferrer"
@@ -34,9 +43,9 @@ export async function Footer() {
 									<TwitterIcon />
 								</Link>
 							)}
-							{siteConfig.social.github && (
+							{settings.social.github && (
 								<Link
-									href={siteConfig.social.github}
+									href={settings.social.github}
 									className="text-muted-foreground transition-colors hover:text-foreground"
 									target="_blank"
 									rel="noopener noreferrer"
@@ -45,9 +54,9 @@ export async function Footer() {
 									<GitHubIcon />
 								</Link>
 							)}
-							{siteConfig.social.discord && (
+							{settings.social.discord && (
 								<Link
-									href={siteConfig.social.discord}
+									href={settings.social.discord}
 									className="text-muted-foreground transition-colors hover:text-foreground"
 									target="_blank"
 									rel="noopener noreferrer"
@@ -56,9 +65,9 @@ export async function Footer() {
 									<DiscordIcon />
 								</Link>
 							)}
-							{siteConfig.social.instagram && (
+							{settings.social.instagram && (
 								<Link
-									href={siteConfig.social.instagram}
+									href={settings.social.instagram}
 									className="text-muted-foreground transition-colors hover:text-foreground"
 									target="_blank"
 									rel="noopener noreferrer"
@@ -73,7 +82,7 @@ export async function Footer() {
 					<nav aria-label="Footer navigation" className="col-span-1 grid gap-8 sm:col-span-1 md:col-span-3 md:grid-cols-3">
 					{footerGroups.map((group) => {
 						const filteredLinks = group.links.filter(
-							(link) => !link.feature || siteConfig.features[link.feature],
+							(link) => !link.feature || settings.features[link.feature],
 						);
 						if (filteredLinks.length === 0) return null;
 
@@ -117,7 +126,7 @@ export async function Footer() {
 				</div>
 
 				<div className="mt-8 flex flex-col items-center gap-2 border-t border-border/50 pt-8 text-center text-sm text-muted-foreground">
-					<span>&copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.</span>
+					<span>&copy; {new Date().getFullYear()} {settings.name}. All rights reserved.</span>
 					{trackingSettings?.cookieConsentEnabled && <CookiePreferencesButton />}
 				</div>
 			</div>

@@ -6,6 +6,7 @@ declare namespace Cloudflare {
 		ASSETS: Fetcher;
 		// D1 Database
 		DB: D1Database;
+		NEXT_TAG_CACHE_D1: D1Database;
 		// R2 Buckets
 		ASSETS_BUCKET: R2Bucket;
 		NEXT_INC_CACHE_R2_BUCKET: R2Bucket;

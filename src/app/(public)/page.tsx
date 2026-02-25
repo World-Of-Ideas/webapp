@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { ctaConfig } from "@/config/navigation";
 import { getRecentPosts } from "@/lib/blog";
 import { getPageBySlug } from "@/lib/pages";
@@ -14,26 +15,30 @@ import { GradientBackground } from "@/components/shared/gradient-background";
 import { CtaSection } from "@/components/shared/cta-section";
 import type { FAQ, RelatedPage } from "@/types/content";
 
-export const metadata: Metadata = {
-	title: { absolute: siteConfig.name },
-	description: siteConfig.description,
-	openGraph: {
-		title: siteConfig.name,
-		description: siteConfig.description,
-		type: "website",
-		url: siteConfig.url,
-		images: [{ url: "/og-default.png", width: 1200, height: 630 }],
-	},
-	alternates: {
-		canonical: siteConfig.url,
-	},
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const settings = await getSiteSettings();
+	return {
+		title: { absolute: settings.name },
+		description: settings.description,
+		openGraph: {
+			title: settings.name,
+			description: settings.description,
+			type: "website",
+			url: siteConfig.url,
+			images: [{ url: "/og-default.png", width: 1200, height: 630 }],
+		},
+		alternates: {
+			canonical: siteConfig.url,
+		},
+	};
+}
 
 export default async function HomePage() {
+	const settings = await getSiteSettings();
 	const homePage = await getPageBySlug("home");
-	const recentPosts = siteConfig.features.blog ? await getRecentPosts(3) : [];
+	const recentPosts = settings.features.blog ? await getRecentPosts(3) : [];
 
-	const isPreLaunch = siteConfig.features.waitlist;
+	const isPreLaunch = settings.features.waitlist;
 	const cta = isPreLaunch ? ctaConfig.preLaunch : ctaConfig.postLaunch;
 
 	const faqs = (homePage?.faqs ?? []) as FAQ[];
@@ -45,72 +50,109 @@ export default async function HomePage() {
 				data={{
 					"@context": "https://schema.org",
 					"@type": "WebSite",
-					name: siteConfig.name,
+					name: settings.name,
 					url: siteConfig.url,
-					description: siteConfig.description,
+					description: settings.description,
 				}}
 			/>
 			<JsonLd
 				data={{
 					"@context": "https://schema.org",
 					"@type": "Organization",
-					name: siteConfig.name,
+					name: settings.name,
 					url: siteConfig.url,
-					...(siteConfig.social.twitter && {
-						sameAs: [`https://twitter.com/${siteConfig.social.twitter.replace("@", "")}`],
+					...(settings.social.twitter && {
+						sameAs: [`https://twitter.com/${settings.social.twitter.replace("@", "")}`],
 					}),
 				}}
 			/>
 
 			{/* Hero Section */}
-			<section className="relative overflow-hidden px-4 py-20 text-center sm:px-6 sm:py-32 md:py-40">
-				<GradientBackground />
-				<div className="relative mx-auto max-w-4xl">
-					<h1 className="text-3xl font-normal tracking-tight sm:text-5xl md:text-7xl">
-						{siteConfig.name}
-					</h1>
-					<p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:mt-6 sm:text-lg md:text-xl">
-						{siteConfig.description}
-					</p>
-					<div className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
-						{isPreLaunch ? (
-							<Link
-								href="/waitlist"
-								className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-							>
-								{cta.buttonText}
-							</Link>
-						) : (
-							<>
-								{siteConfig.productLinks.appUrl && (
-									<a
-										href={siteConfig.productLinks.appUrl}
+			{settings.theme.heroVariant === "split" ? (
+				<section className="relative overflow-hidden px-4 py-20 sm:px-6 sm:py-32 md:py-40">
+					<div className="relative mx-auto grid max-w-[1128px] items-center gap-8 md:grid-cols-2">
+						<div>
+							<h1 className="text-3xl font-normal tracking-tight sm:text-5xl md:text-6xl">
+								{settings.name}
+							</h1>
+							<p className="mt-4 max-w-xl text-base text-muted-foreground sm:mt-6 sm:text-lg md:text-xl">
+								{settings.description}
+							</p>
+							<div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:gap-4">
+								{isPreLaunch ? (
+									<Link
+										href="/waitlist"
 										className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
 									>
 										{cta.buttonText}
-									</a>
+									</Link>
+								) : (
+									<>
+										{settings.productLinks.appUrl && (
+											<a href={settings.productLinks.appUrl} className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
+												{cta.buttonText}
+											</a>
+										)}
+										{settings.productLinks.appStoreUrl && (
+											<a href={settings.productLinks.appStoreUrl} className="rounded-full border border-border px-8 py-3 text-sm font-medium transition-colors hover:bg-accent">
+												App Store
+											</a>
+										)}
+										{settings.productLinks.playStoreUrl && (
+											<a href={settings.productLinks.playStoreUrl} className="rounded-full border border-border px-8 py-3 text-sm font-medium transition-colors hover:bg-accent">
+												Play Store
+											</a>
+										)}
+									</>
 								)}
-								{siteConfig.productLinks.appStoreUrl && (
-									<a
-										href={siteConfig.productLinks.appStoreUrl}
-										className="rounded-full border border-border px-8 py-3 text-sm font-medium transition-colors hover:bg-accent"
-									>
-										App Store
-									</a>
-								)}
-								{siteConfig.productLinks.playStoreUrl && (
-									<a
-										href={siteConfig.productLinks.playStoreUrl}
-										className="rounded-full border border-border px-8 py-3 text-sm font-medium transition-colors hover:bg-accent"
-									>
-										Play Store
-									</a>
-								)}
-							</>
-						)}
+							</div>
+						</div>
+						<div className="relative hidden md:block">
+							<GradientBackground />
+						</div>
 					</div>
-				</div>
-			</section>
+				</section>
+			) : (
+				<section className="relative overflow-hidden px-4 py-20 text-center sm:px-6 sm:py-32 md:py-40">
+					{settings.theme.heroVariant === "gradient" && <GradientBackground />}
+					<div className="relative mx-auto max-w-4xl">
+						<h1 className="text-3xl font-normal tracking-tight sm:text-5xl md:text-7xl">
+							{settings.name}
+						</h1>
+						<p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:mt-6 sm:text-lg md:text-xl">
+							{settings.description}
+						</p>
+						<div className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
+							{isPreLaunch ? (
+								<Link
+									href="/waitlist"
+									className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+								>
+									{cta.buttonText}
+								</Link>
+							) : (
+								<>
+									{settings.productLinks.appUrl && (
+										<a href={settings.productLinks.appUrl} className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
+											{cta.buttonText}
+										</a>
+									)}
+									{settings.productLinks.appStoreUrl && (
+										<a href={settings.productLinks.appStoreUrl} className="rounded-full border border-border px-8 py-3 text-sm font-medium transition-colors hover:bg-accent">
+											App Store
+										</a>
+									)}
+									{settings.productLinks.playStoreUrl && (
+										<a href={settings.productLinks.playStoreUrl} className="rounded-full border border-border px-8 py-3 text-sm font-medium transition-colors hover:bg-accent">
+											Play Store
+										</a>
+									)}
+								</>
+							)}
+						</div>
+					</div>
+				</section>
+			)}
 
 			{/* Page Content (editable via admin) */}
 			{homePage?.content && homePage.content.length > 0 && (
@@ -122,14 +164,14 @@ export default async function HomePage() {
 			)}
 
 			{/* Subscriber Count */}
-			{siteConfig.features.waitlist && (
+			{settings.features.waitlist && (
 				<section className="px-6 py-8 text-center">
 					<SubscriberCount />
 				</section>
 			)}
 
 			{/* Latest Posts */}
-			{siteConfig.features.blog && recentPosts.length > 0 && (
+			{settings.features.blog && recentPosts.length > 0 && (
 				<section className="px-4 py-12 sm:px-6 sm:py-16">
 					<div className="mx-auto max-w-[1128px]">
 						<h2 className="text-center text-2xl font-normal tracking-tight sm:text-3xl">
@@ -137,7 +179,7 @@ export default async function HomePage() {
 						</h2>
 						<div className="mt-8 grid gap-6 sm:mt-12 sm:gap-8 md:grid-cols-3">
 							{recentPosts.map((post) => (
-								<PostCard key={post.slug} post={post} />
+								<PostCard key={post.slug} post={post} variant={settings.theme.postCardVariant} />
 							))}
 						</div>
 						<div className="mt-8 text-center">
@@ -157,7 +199,8 @@ export default async function HomePage() {
 				title={cta.heading}
 				description={cta.description}
 				buttonText={cta.buttonText}
-				buttonHref={isPreLaunch ? "/waitlist" : (siteConfig.productLinks.appUrl || "/waitlist")}
+				buttonHref={isPreLaunch ? "/waitlist" : (settings.productLinks.appUrl || "/waitlist")}
+				variant={settings.theme.ctaSectionVariant}
 			/>
 
 			{/* FAQs */}

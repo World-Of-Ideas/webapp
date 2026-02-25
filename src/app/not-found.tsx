@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 
-export default function NotFound() {
-	const hasWaitlist = siteConfig.features.waitlist;
+export default async function NotFound() {
+	const settings = await getSiteSettings();
+	const hasWaitlist = settings.features.waitlist;
 	const hasProductLinks =
-		siteConfig.productLinks.appUrl ||
-		siteConfig.productLinks.appStoreUrl ||
-		siteConfig.productLinks.playStoreUrl;
+		settings.productLinks.appUrl ||
+		settings.productLinks.appStoreUrl ||
+		settings.productLinks.playStoreUrl;
 
 	return (
 		<div className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
@@ -24,25 +25,25 @@ export default function NotFound() {
 					</Link>
 				) : hasProductLinks ? (
 					<>
-						{siteConfig.productLinks.appUrl && (
+						{settings.productLinks.appUrl && (
 							<a
-								href={siteConfig.productLinks.appUrl}
+								href={settings.productLinks.appUrl}
 								className="rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
 							>
 								Get Started
 							</a>
 						)}
-						{siteConfig.productLinks.appStoreUrl && (
+						{settings.productLinks.appStoreUrl && (
 							<a
-								href={siteConfig.productLinks.appStoreUrl}
+								href={settings.productLinks.appStoreUrl}
 								className="rounded-md border border-input px-6 py-3 text-sm font-semibold hover:bg-accent"
 							>
 								App Store
 							</a>
 						)}
-						{siteConfig.productLinks.playStoreUrl && (
+						{settings.productLinks.playStoreUrl && (
 							<a
-								href={siteConfig.productLinks.playStoreUrl}
+								href={settings.productLinks.playStoreUrl}
 								className="rounded-md border border-input px-6 py-3 text-sm font-semibold hover:bg-accent"
 							>
 								Play Store

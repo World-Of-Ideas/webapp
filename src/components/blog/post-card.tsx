@@ -2,7 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { normalizeImageSrc } from "@/lib/r2";
 import { isSafeUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { ArrowIcon } from "@/components/shared/arrow-icon";
+import type { ThemeSettings } from "@/types/site-settings";
+
+const cardVariantStyles: Record<ThemeSettings["postCardVariant"], string> = {
+	bordered: "rounded-xl border bg-card hover:bg-accent/50",
+	filled: "rounded-xl bg-muted hover:bg-muted/80 border-0",
+	minimal: "border-b rounded-none bg-transparent",
+};
 
 interface PostCardProps {
 	post: {
@@ -13,9 +21,10 @@ interface PostCardProps {
 		publishedAt?: string | null;
 		tags?: string[] | null;
 	};
+	variant?: ThemeSettings["postCardVariant"];
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, variant = "bordered" }: PostCardProps) {
 	const formattedDate = post.publishedAt
 		? new Date(post.publishedAt).toLocaleDateString("en-US", {
 				year: "numeric",
@@ -26,7 +35,7 @@ export function PostCard({ post }: PostCardProps) {
 
 	return (
 		<Link href={`/blog/${post.slug}`} className="group">
-			<article className="h-full overflow-hidden rounded-xl border bg-card transition-colors hover:bg-accent/50">
+			<article className={cn("h-full overflow-hidden transition-colors", cardVariantStyles[variant] ?? cardVariantStyles.bordered)}>
 				{post.coverImage && isSafeUrl(post.coverImage) ? (
 					<div className="relative aspect-[2/1] overflow-hidden">
 						<Image

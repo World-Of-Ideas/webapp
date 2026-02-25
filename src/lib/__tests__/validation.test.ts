@@ -9,6 +9,7 @@ import {
 	validatePostBody,
 	validatePostUpdateBody,
 	validatePageBody,
+	validateSiteSettingsBody,
 } from "../validation";
 
 describe("isValidEmail", () => {
@@ -571,5 +572,298 @@ describe("validatePageBody", () => {
 		expect(
 			validatePageBody({ slug: "test", title: "Test", sortOrder: 5 }),
 		).toBeNull();
+	});
+});
+
+describe("validateSiteSettingsBody", () => {
+	it("returns null for empty object (all fields optional)", () => {
+		expect(validateSiteSettingsBody({})).toBeNull();
+	});
+
+	it("rejects null body", () => {
+		expect(validateSiteSettingsBody(null)).toBe("Invalid request body");
+	});
+
+	it("rejects non-object body", () => {
+		expect(validateSiteSettingsBody("string")).toBe("Invalid request body");
+	});
+
+	// --- name ---
+	it("accepts valid name", () => {
+		expect(validateSiteSettingsBody({ name: "My Site" })).toBeNull();
+	});
+
+	it("rejects empty name", () => {
+		expect(validateSiteSettingsBody({ name: "" })).toBe("Name is required");
+	});
+
+	it("rejects name over 200 chars", () => {
+		expect(validateSiteSettingsBody({ name: "a".repeat(201) })).toBe("Name is too long (max 200 characters)");
+	});
+
+	// --- description ---
+	it("accepts valid description", () => {
+		expect(validateSiteSettingsBody({ description: "A description" })).toBeNull();
+	});
+
+	it("rejects non-string description", () => {
+		expect(validateSiteSettingsBody({ description: 123 })).toBe("Description must be a string");
+	});
+
+	it("rejects description over 500 chars", () => {
+		expect(validateSiteSettingsBody({ description: "a".repeat(501) })).toBe("Description is too long (max 500 characters)");
+	});
+
+	// --- author ---
+	it("rejects author over 200 chars", () => {
+		expect(validateSiteSettingsBody({ author: "a".repeat(201) })).toBe("Author is too long (max 200 characters)");
+	});
+
+	// --- social ---
+	it("accepts valid social object", () => {
+		expect(validateSiteSettingsBody({ social: { twitter: "@hello" } })).toBeNull();
+	});
+
+	it("rejects social as array", () => {
+		expect(validateSiteSettingsBody({ social: ["twitter"] })).toBe("Social must be an object");
+	});
+
+	it("rejects social with non-string values", () => {
+		expect(validateSiteSettingsBody({ social: { twitter: 123 } })).toBe("social.twitter must be a string");
+	});
+
+	it("rejects social value over 200 chars", () => {
+		expect(validateSiteSettingsBody({ social: { twitter: "a".repeat(201) } })).toBe("social.twitter is too long (max 200 characters)");
+	});
+
+	// --- productLinks ---
+	it("accepts valid productLinks", () => {
+		expect(validateSiteSettingsBody({ productLinks: { appUrl: "https://app.example.com" } })).toBeNull();
+	});
+
+	it("rejects productLinks as null", () => {
+		expect(validateSiteSettingsBody({ productLinks: null })).toBe("productLinks must be an object");
+	});
+
+	it("rejects productLinks value over 500 chars", () => {
+		expect(validateSiteSettingsBody({ productLinks: { appUrl: "a".repeat(501) } })).toBe("productLinks.appUrl is too long (max 500 characters)");
+	});
+
+	// --- features ---
+	it("accepts valid features", () => {
+		expect(validateSiteSettingsBody({ features: { blog: true, waitlist: false } })).toBeNull();
+	});
+
+	it("rejects features with non-boolean values", () => {
+		expect(validateSiteSettingsBody({ features: { blog: "yes" } })).toBe("features.blog must be a boolean");
+	});
+
+	it("rejects features as array", () => {
+		expect(validateSiteSettingsBody({ features: [true] })).toBe("Features must be an object");
+	});
+
+	// --- ui ---
+	it("accepts valid ui", () => {
+		expect(validateSiteSettingsBody({ ui: { search: true } })).toBeNull();
+	});
+
+	it("rejects ui with non-boolean values", () => {
+		expect(validateSiteSettingsBody({ ui: { search: 1 } })).toBe("ui.search must be a boolean");
+	});
+
+	// --- theme ---
+	it("accepts valid theme", () => {
+		expect(validateSiteSettingsBody({ theme: { preset: "bold", accentColor: "#9747ff" } })).toBeNull();
+	});
+
+	it("rejects theme as non-object", () => {
+		expect(validateSiteSettingsBody({ theme: "bold" })).toBe("Theme must be an object");
+	});
+
+	it("rejects invalid hex color", () => {
+		expect(validateSiteSettingsBody({ theme: { accentColor: "red" } })).toBe("theme.accentColor must be a valid hex color (e.g. #9747ff)");
+	});
+
+	it("rejects 3-digit hex color", () => {
+		expect(validateSiteSettingsBody({ theme: { accentColor: "#fff" } })).toBe("theme.accentColor must be a valid hex color (e.g. #9747ff)");
+	});
+
+	it("accepts valid 6-digit hex color", () => {
+		expect(validateSiteSettingsBody({ theme: { accentColor: "#FF00AA" } })).toBeNull();
+	});
+
+	it("rejects invalid fontFamily", () => {
+		expect(validateSiteSettingsBody({ theme: { fontFamily: "comic-sans" } })).toMatch(/theme.fontFamily must be one of/);
+	});
+
+	it("accepts valid fontFamily", () => {
+		expect(validateSiteSettingsBody({ theme: { fontFamily: "dm-sans" } })).toBeNull();
+	});
+
+	it("rejects invalid heroVariant", () => {
+		expect(validateSiteSettingsBody({ theme: { heroVariant: "fullscreen" } })).toMatch(/theme.heroVariant must be one of/);
+	});
+
+	it("accepts valid heroVariant", () => {
+		expect(validateSiteSettingsBody({ theme: { heroVariant: "split" } })).toBeNull();
+	});
+
+	it("rejects invalid headerVariant", () => {
+		expect(validateSiteSettingsBody({ theme: { headerVariant: "sticky" } })).toMatch(/theme.headerVariant must be one of/);
+	});
+
+	it("rejects invalid footerVariant", () => {
+		expect(validateSiteSettingsBody({ theme: { footerVariant: "mega" } })).toMatch(/theme.footerVariant must be one of/);
+	});
+
+	it("rejects invalid postCardVariant", () => {
+		expect(validateSiteSettingsBody({ theme: { postCardVariant: "card" } })).toMatch(/theme.postCardVariant must be one of/);
+	});
+
+	it("rejects invalid ctaSectionVariant", () => {
+		expect(validateSiteSettingsBody({ theme: { ctaSectionVariant: "rainbow" } })).toMatch(/theme.ctaSectionVariant must be one of/);
+	});
+
+	it("accepts all valid variants together", () => {
+		expect(validateSiteSettingsBody({
+			theme: {
+				heroVariant: "centered",
+				headerVariant: "solid",
+				footerVariant: "columns",
+				postCardVariant: "filled",
+				ctaSectionVariant: "outlined",
+				fontFamily: "space-grotesk",
+				accentColor: "#2563eb",
+			},
+		})).toBeNull();
+	});
+
+	// --- logoUrl ---
+	it("accepts valid logoUrl string", () => {
+		expect(validateSiteSettingsBody({ logoUrl: "https://example.com/logo.png" })).toBeNull();
+	});
+
+	it("accepts null logoUrl", () => {
+		expect(validateSiteSettingsBody({ logoUrl: null })).toBeNull();
+	});
+
+	it("rejects non-string logoUrl", () => {
+		expect(validateSiteSettingsBody({ logoUrl: 123 })).toBe("logoUrl must be a string or null");
+	});
+
+	it("rejects logoUrl over 500 chars", () => {
+		expect(validateSiteSettingsBody({ logoUrl: "https://example.com/" + "a".repeat(500) })).toBe("logoUrl is too long (max 500 characters)");
+	});
+
+	// --- missing type guards ---
+	it("rejects name as number", () => {
+		expect(validateSiteSettingsBody({ name: 123 })).toBe("Name is required");
+	});
+
+	it("rejects author as number", () => {
+		expect(validateSiteSettingsBody({ author: 42 })).toBe("Author must be a string");
+	});
+
+	it("rejects social as null", () => {
+		expect(validateSiteSettingsBody({ social: null })).toBe("Social must be an object");
+	});
+
+	it("rejects productLinks as array", () => {
+		expect(validateSiteSettingsBody({ productLinks: ["https://example.com"] })).toBe("productLinks must be an object");
+	});
+
+	it("rejects productLinks with non-string value", () => {
+		expect(validateSiteSettingsBody({ productLinks: { appUrl: 123 } })).toBe("productLinks.appUrl must be a string");
+	});
+
+	it("rejects ui as null", () => {
+		expect(validateSiteSettingsBody({ ui: null })).toBe("UI must be an object");
+	});
+
+	it("rejects ui as array", () => {
+		expect(validateSiteSettingsBody({ ui: [true] })).toBe("UI must be an object");
+	});
+
+	it("rejects theme as null", () => {
+		expect(validateSiteSettingsBody({ theme: null })).toBe("Theme must be an object");
+	});
+
+	it("rejects theme as array", () => {
+		expect(validateSiteSettingsBody({ theme: ["bold"] })).toBe("Theme must be an object");
+	});
+
+	it("rejects theme.preset as number", () => {
+		expect(validateSiteSettingsBody({ theme: { preset: 123 } })).toMatch(/theme.preset must be one of/);
+	});
+
+	it("rejects theme.borderRadius as number", () => {
+		expect(validateSiteSettingsBody({ theme: { borderRadius: 10 } })).toMatch(/theme.borderRadius must be one of/);
+	});
+
+	it("rejects invalid theme.borderRadius value", () => {
+		expect(validateSiteSettingsBody({ theme: { borderRadius: "999px" } })).toMatch(/theme.borderRadius must be one of/);
+	});
+
+	it("rejects theme.headingWeight as number", () => {
+		expect(validateSiteSettingsBody({ theme: { headingWeight: 400 } })).toMatch(/theme.headingWeight must be one of/);
+	});
+
+	it("rejects invalid theme.headingWeight value", () => {
+		expect(validateSiteSettingsBody({ theme: { headingWeight: "bold" } })).toMatch(/theme.headingWeight must be one of/);
+	});
+
+	it("rejects unknown theme keys", () => {
+		expect(validateSiteSettingsBody({ theme: { unknownKey: "value" } })).toBe("Unknown theme key: unknownKey");
+	});
+
+	it("rejects unknown social keys", () => {
+		expect(validateSiteSettingsBody({ social: { linkedin: "https://linkedin.com" } })).toBe("Unknown social key: linkedin");
+	});
+
+	it("rejects unknown productLinks keys", () => {
+		expect(validateSiteSettingsBody({ productLinks: { websiteUrl: "https://example.com" } })).toBe("Unknown productLinks key: websiteUrl");
+	});
+
+	// --- adversarial inputs (documenting that validation does not sanitize HTML) ---
+	it("accepts HTML in name (sanitization is at rendering layer)", () => {
+		expect(validateSiteSettingsBody({ name: '<script>alert(1)</script>' })).toBeNull();
+	});
+
+	it("rejects javascript: URL in social links", () => {
+		expect(validateSiteSettingsBody({ social: { github: "javascript:alert(1)" } })).toBe("social.github must be a valid URL");
+	});
+
+	it("rejects javascript: URL in product links", () => {
+		expect(validateSiteSettingsBody({ productLinks: { appUrl: "javascript:alert(1)" } })).toBe("productLinks.appUrl must be a valid URL");
+	});
+
+	it("accepts twitter handle format", () => {
+		expect(validateSiteSettingsBody({ social: { twitter: "@validhandle" } })).toBeNull();
+	});
+
+	it("rejects invalid twitter handle", () => {
+		expect(validateSiteSettingsBody({ social: { twitter: "not a handle!" } })).toBe("social.twitter must be a valid handle (e.g. @username)");
+	});
+
+	it("accepts empty social values", () => {
+		expect(validateSiteSettingsBody({ social: { twitter: "", github: "" } })).toBeNull();
+	});
+
+	it("rejects logoUrl with javascript: protocol", () => {
+		expect(validateSiteSettingsBody({ logoUrl: "javascript:alert(1)" })).toBe("logoUrl must be a valid URL");
+	});
+
+	// --- full valid body ---
+	it("accepts complete valid body", () => {
+		expect(validateSiteSettingsBody({
+			name: "My Site",
+			description: "A description",
+			author: "Author",
+			social: { twitter: "@test" },
+			productLinks: { appUrl: "https://app.example.com" },
+			features: { blog: true, waitlist: false },
+			ui: { search: true },
+			theme: { preset: "minimal", accentColor: "#1a1a1a" },
+		})).toBeNull();
 	});
 });

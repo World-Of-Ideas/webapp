@@ -1,4 +1,4 @@
-import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { SearchDialog } from "@/components/shared/search-dialog";
@@ -7,11 +7,13 @@ import { GoogleAnalytics } from "@/components/shared/google-analytics";
 import { GoogleTagManager } from "@/components/shared/google-tag-manager";
 import { CookieConsent } from "@/components/shared/cookie-consent";
 
-export default function PublicLayout({
+export default async function PublicLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
+	const settings = await getSiteSettings();
+
 	return (
 		<>
 			<a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:bg-background focus:px-4 focus:py-2 focus:text-foreground">Skip to content</a>
@@ -22,7 +24,7 @@ export default function PublicLayout({
 			<GoogleAnalytics />
 			<GoogleTagManager />
 			<CookieConsent />
-			{siteConfig.ui.search && <SearchDialog />}
+			{settings.ui.search && <SearchDialog />}
 		</>
 	);
 }

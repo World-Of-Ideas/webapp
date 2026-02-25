@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { ContentRenderer } from "@/components/content/content-renderer";
 import { ArrowIcon } from "@/components/shared/arrow-icon";
+import { cn } from "@/lib/utils";
 import type { ContentBlock } from "@/types/content";
+import type { ThemeSettings } from "@/types/site-settings";
+
+const cardVariantStyles: Record<ThemeSettings["postCardVariant"], string> = {
+	bordered: "rounded-xl border bg-card hover:bg-accent/50",
+	filled: "rounded-xl bg-muted hover:bg-muted/80 border-0",
+	minimal: "border-b rounded-none bg-transparent",
+};
 
 interface ChildPage {
 	slug: string;
@@ -14,9 +22,10 @@ interface ListingTemplateProps {
 	description: string | null;
 	content: ContentBlock[] | null;
 	children: ChildPage[];
+	cardVariant?: ThemeSettings["postCardVariant"];
 }
 
-export function ListingTemplate({ title, description, content, children }: ListingTemplateProps) {
+export function ListingTemplate({ title, description, content, children, cardVariant = "bordered" }: ListingTemplateProps) {
 	return (
 		<div className="mx-auto max-w-[1128px] px-4 py-12 sm:px-6 sm:py-16">
 			<h1 className="text-3xl font-normal tracking-tight sm:text-4xl md:text-5xl">
@@ -41,7 +50,7 @@ export function ListingTemplate({ title, description, content, children }: Listi
 						<Link
 							key={child.slug}
 							href={`/${child.slug}`}
-							className="group overflow-hidden rounded-xl border bg-card p-6 transition-colors hover:bg-accent/50"
+							className={cn("group overflow-hidden p-6 transition-colors", cardVariantStyles[cardVariant] ?? cardVariantStyles.bordered)}
 						>
 							<h3 className="font-semibold group-hover:text-primary">
 								{child.title}
