@@ -10,6 +10,8 @@ import {
 	validatePostUpdateBody,
 	validatePageBody,
 	validateSiteSettingsBody,
+	validateRedirectBody,
+	validateRedirectUpdateBody,
 } from "../validation";
 
 describe("isValidEmail", () => {
@@ -467,6 +469,77 @@ describe("validatePostBody", () => {
 			}),
 		).toBeNull();
 	});
+
+	it("accepts valid ISO date for scheduledPublishAt", () => {
+		expect(
+			validatePostBody({
+				slug: "test",
+				title: "T",
+				description: "d",
+				content: [],
+				scheduledPublishAt: "2026-06-01T00:00:00Z",
+			}),
+		).toBeNull();
+	});
+
+	it("accepts null scheduledPublishAt", () => {
+		expect(
+			validatePostBody({
+				slug: "test",
+				title: "T",
+				description: "d",
+				content: [],
+				scheduledPublishAt: null,
+			}),
+		).toBeNull();
+	});
+
+	it("accepts undefined scheduledPublishAt", () => {
+		expect(
+			validatePostBody({
+				slug: "test",
+				title: "T",
+				description: "d",
+				content: [],
+			}),
+		).toBeNull();
+	});
+
+	it("rejects non-string scheduledPublishAt", () => {
+		expect(
+			validatePostBody({
+				slug: "test",
+				title: "T",
+				description: "d",
+				content: [],
+				scheduledPublishAt: 123,
+			}),
+		).toBe("scheduledPublishAt must be a string");
+	});
+
+	it("rejects invalid date for scheduledPublishAt", () => {
+		expect(
+			validatePostBody({
+				slug: "test",
+				title: "T",
+				description: "d",
+				content: [],
+				scheduledPublishAt: "not-a-date",
+			}),
+		).toBe("scheduledPublishAt must be a valid ISO date");
+	});
+
+	it("rejects too long scheduledPublishAt", () => {
+		expect(
+			validatePostBody({
+				slug: "test",
+				title: "T",
+				description: "d",
+				content: [],
+				scheduledPublishAt: "x".repeat(31),
+			}),
+		).toBe("scheduledPublishAt is too long");
+	});
 });
 
 describe("validatePostUpdateBody", () => {
@@ -525,6 +598,40 @@ describe("validatePostUpdateBody", () => {
 	it("returns null when description is valid", () => {
 		expect(validatePostUpdateBody({ description: "Valid desc" })).toBeNull();
 	});
+
+	it("accepts valid ISO date for scheduledPublishAt", () => {
+		expect(
+			validatePostUpdateBody({ scheduledPublishAt: "2026-06-01T00:00:00Z" }),
+		).toBeNull();
+	});
+
+	it("accepts null scheduledPublishAt", () => {
+		expect(
+			validatePostUpdateBody({ scheduledPublishAt: null }),
+		).toBeNull();
+	});
+
+	it("accepts undefined scheduledPublishAt (omitted)", () => {
+		expect(validatePostUpdateBody({})).toBeNull();
+	});
+
+	it("rejects non-string scheduledPublishAt", () => {
+		expect(
+			validatePostUpdateBody({ scheduledPublishAt: 123 }),
+		).toBe("scheduledPublishAt must be a string");
+	});
+
+	it("rejects invalid date for scheduledPublishAt", () => {
+		expect(
+			validatePostUpdateBody({ scheduledPublishAt: "not-a-date" }),
+		).toBe("scheduledPublishAt must be a valid ISO date");
+	});
+
+	it("rejects too long scheduledPublishAt", () => {
+		expect(
+			validatePostUpdateBody({ scheduledPublishAt: "x".repeat(31) }),
+		).toBe("scheduledPublishAt is too long");
+	});
 });
 
 describe("validatePageBody", () => {
@@ -572,6 +679,42 @@ describe("validatePageBody", () => {
 		expect(
 			validatePageBody({ slug: "test", title: "Test", sortOrder: 5 }),
 		).toBeNull();
+	});
+
+	it("accepts valid ISO date for scheduledPublishAt", () => {
+		expect(
+			validatePageBody({ slug: "test", title: "Test", scheduledPublishAt: "2026-06-01T00:00:00Z" }),
+		).toBeNull();
+	});
+
+	it("accepts null scheduledPublishAt", () => {
+		expect(
+			validatePageBody({ slug: "test", title: "Test", scheduledPublishAt: null }),
+		).toBeNull();
+	});
+
+	it("accepts undefined scheduledPublishAt (omitted)", () => {
+		expect(
+			validatePageBody({ slug: "test", title: "Test" }),
+		).toBeNull();
+	});
+
+	it("rejects non-string scheduledPublishAt", () => {
+		expect(
+			validatePageBody({ slug: "test", title: "Test", scheduledPublishAt: 123 }),
+		).toBe("scheduledPublishAt must be a string");
+	});
+
+	it("rejects invalid date for scheduledPublishAt", () => {
+		expect(
+			validatePageBody({ slug: "test", title: "Test", scheduledPublishAt: "not-a-date" }),
+		).toBe("scheduledPublishAt must be a valid ISO date");
+	});
+
+	it("rejects too long scheduledPublishAt", () => {
+		expect(
+			validatePageBody({ slug: "test", title: "Test", scheduledPublishAt: "x".repeat(31) }),
+		).toBe("scheduledPublishAt is too long");
 	});
 });
 
@@ -853,6 +996,67 @@ describe("validateSiteSettingsBody", () => {
 		expect(validateSiteSettingsBody({ logoUrl: "javascript:alert(1)" })).toBe("logoUrl must be a valid URL");
 	});
 
+	// --- announcement ---
+	it("accepts valid announcement object", () => {
+		expect(validateSiteSettingsBody({
+			announcement: { enabled: true, text: "New launch!", linkUrl: "https://example.com", linkText: "Learn more" },
+		})).toBeNull();
+	});
+
+	it("accepts empty announcement fields", () => {
+		expect(validateSiteSettingsBody({
+			announcement: { enabled: false, text: "", linkUrl: "", linkText: "" },
+		})).toBeNull();
+	});
+
+	it("rejects announcement as non-object", () => {
+		expect(validateSiteSettingsBody({ announcement: "hello" })).toBe("Announcement must be an object");
+	});
+
+	it("rejects announcement as null", () => {
+		expect(validateSiteSettingsBody({ announcement: null })).toBe("Announcement must be an object");
+	});
+
+	it("rejects announcement as array", () => {
+		expect(validateSiteSettingsBody({ announcement: [] })).toBe("Announcement must be an object");
+	});
+
+	it("rejects unknown announcement key", () => {
+		expect(validateSiteSettingsBody({ announcement: { unknown: "value" } })).toBe("Unknown announcement key: unknown");
+	});
+
+	it("rejects non-boolean announcement.enabled", () => {
+		expect(validateSiteSettingsBody({ announcement: { enabled: "yes" } })).toBe("announcement.enabled must be a boolean");
+	});
+
+	it("rejects non-string announcement.text", () => {
+		expect(validateSiteSettingsBody({ announcement: { text: 123 } })).toBe("announcement.text must be a string");
+	});
+
+	it("rejects announcement.text over max length", () => {
+		expect(validateSiteSettingsBody({ announcement: { text: "a".repeat(201) } })).toBe("announcement.text is too long (max 200 characters)");
+	});
+
+	it("rejects non-string announcement.linkUrl", () => {
+		expect(validateSiteSettingsBody({ announcement: { linkUrl: 123 } })).toBe("announcement.linkUrl must be a string");
+	});
+
+	it("rejects announcement.linkUrl over max length", () => {
+		expect(validateSiteSettingsBody({ announcement: { linkUrl: "https://example.com/" + "a".repeat(500) } })).toBe("announcement.linkUrl is too long (max 500 characters)");
+	});
+
+	it("rejects unsafe announcement.linkUrl", () => {
+		expect(validateSiteSettingsBody({ announcement: { linkUrl: "javascript:alert(1)" } })).toBe("announcement.linkUrl must be a valid URL");
+	});
+
+	it("rejects non-string announcement.linkText", () => {
+		expect(validateSiteSettingsBody({ announcement: { linkText: 123 } })).toBe("announcement.linkText must be a string");
+	});
+
+	it("rejects announcement.linkText over max length", () => {
+		expect(validateSiteSettingsBody({ announcement: { linkText: "a".repeat(101) } })).toBe("announcement.linkText is too long (max 100 characters)");
+	});
+
 	// --- full valid body ---
 	it("accepts complete valid body", () => {
 		expect(validateSiteSettingsBody({
@@ -864,6 +1068,99 @@ describe("validateSiteSettingsBody", () => {
 			features: { blog: true, waitlist: false },
 			ui: { search: true },
 			theme: { preset: "minimal", accentColor: "#1a1a1a" },
+			announcement: { enabled: true, text: "Hello world" },
 		})).toBeNull();
+	});
+});
+
+describe("validateRedirectBody", () => {
+	it("accepts valid redirect", () => {
+		expect(validateRedirectBody({ fromPath: "/old", toUrl: "/new" })).toBeNull();
+	});
+
+	it("accepts with statusCode 302", () => {
+		expect(validateRedirectBody({ fromPath: "/old", toUrl: "/new", statusCode: 302 })).toBeNull();
+	});
+
+	it("accepts with enabled false", () => {
+		expect(validateRedirectBody({ fromPath: "/old", toUrl: "/new", enabled: false })).toBeNull();
+	});
+
+	it("accepts absolute toUrl", () => {
+		expect(validateRedirectBody({ fromPath: "/old", toUrl: "https://example.com/new" })).toBeNull();
+	});
+
+	it("rejects null body", () => {
+		expect(validateRedirectBody(null)).toBe("Invalid request body");
+	});
+
+	it("rejects non-object body", () => {
+		expect(validateRedirectBody("string")).toBe("Invalid request body");
+	});
+
+	it("rejects missing fromPath", () => {
+		expect(validateRedirectBody({ toUrl: "/new" })).toBe("fromPath is required");
+	});
+
+	it("rejects fromPath not starting with /", () => {
+		expect(validateRedirectBody({ fromPath: "old", toUrl: "/new" })).toBe("fromPath must start with /");
+	});
+
+	it("rejects fromPath too long", () => {
+		expect(validateRedirectBody({ fromPath: "/" + "a".repeat(500), toUrl: "/new" })).toBe("fromPath is too long");
+	});
+
+	it("rejects fromPath starting with /admin", () => {
+		expect(validateRedirectBody({ fromPath: "/admin/test", toUrl: "/new" })).toBe("Cannot redirect admin or API paths");
+	});
+
+	it("rejects fromPath starting with /api", () => {
+		expect(validateRedirectBody({ fromPath: "/api/test", toUrl: "/new" })).toBe("Cannot redirect admin or API paths");
+	});
+
+	it("rejects missing toUrl", () => {
+		expect(validateRedirectBody({ fromPath: "/old" })).toBe("toUrl is required");
+	});
+
+	it("rejects toUrl too long", () => {
+		expect(validateRedirectBody({ fromPath: "/old", toUrl: "/" + "a".repeat(2000) })).toBe("toUrl is too long");
+	});
+
+	it("rejects unsafe toUrl", () => {
+		expect(validateRedirectBody({ fromPath: "/old", toUrl: "javascript:alert(1)" })).toBe("toUrl must be a safe URL");
+	});
+
+	it("rejects invalid statusCode", () => {
+		expect(validateRedirectBody({ fromPath: "/old", toUrl: "/new", statusCode: 200 })).toBe("statusCode must be 301 or 302");
+	});
+
+	it("rejects non-boolean enabled", () => {
+		expect(validateRedirectBody({ fromPath: "/old", toUrl: "/new", enabled: "yes" })).toBe("enabled must be a boolean");
+	});
+});
+
+describe("validateRedirectUpdateBody", () => {
+	it("accepts empty update (all fields optional)", () => {
+		expect(validateRedirectUpdateBody({})).toBeNull();
+	});
+
+	it("accepts partial update with toUrl", () => {
+		expect(validateRedirectUpdateBody({ toUrl: "/new-dest" })).toBeNull();
+	});
+
+	it("rejects unsafe toUrl", () => {
+		expect(validateRedirectUpdateBody({ toUrl: "javascript:void(0)" })).toBe("toUrl must be a safe URL");
+	});
+
+	it("rejects empty fromPath", () => {
+		expect(validateRedirectUpdateBody({ fromPath: "" })).toBe("fromPath must be a non-empty string");
+	});
+
+	it("rejects invalid statusCode", () => {
+		expect(validateRedirectUpdateBody({ statusCode: 404 })).toBe("statusCode must be 301 or 302");
+	});
+
+	it("rejects non-boolean enabled", () => {
+		expect(validateRedirectUpdateBody({ enabled: 1 })).toBe("enabled must be a boolean");
 	});
 });

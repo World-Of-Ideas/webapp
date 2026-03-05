@@ -22,12 +22,14 @@ export async function search(query: string): Promise<{
 		db.all(
 			sql`SELECT slug, title, description FROM pages
 				WHERE published = 1
+				AND (scheduled_publish_at IS NULL OR scheduled_publish_at <= datetime('now'))
 				AND (title LIKE ${pattern} ESCAPE '\\' OR description LIKE ${pattern} ESCAPE '\\')
 				LIMIT 5`,
 		),
 		db.all(
 			sql`SELECT slug, title, description FROM posts
 				WHERE published = 1
+				AND (scheduled_publish_at IS NULL OR scheduled_publish_at <= datetime('now'))
 				AND (title LIKE ${pattern} ESCAPE '\\' OR description LIKE ${pattern} ESCAPE '\\')
 				LIMIT 5`,
 		),

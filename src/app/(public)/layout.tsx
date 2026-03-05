@@ -17,7 +17,7 @@ export default async function PublicLayout({
 	return (
 		<>
 			<a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:bg-background focus:px-4 focus:py-2 focus:text-foreground">Skip to content</a>
-			<Header />
+			<Header announcement={settings.announcement} />
 			<main id="main-content" className="min-h-[calc(100vh-3.5rem)] pt-14">{children}</main>
 			<Footer />
 			<MetaPixel />

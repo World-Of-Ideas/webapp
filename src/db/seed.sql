@@ -23,19 +23,20 @@ INSERT OR REPLACE INTO tracking_settings (
 
 INSERT OR REPLACE INTO site_settings (
   id, name, description, author,
-  social, product_links, features, ui, theme, logo_url
+  social, product_links, features, ui, theme, logo_url, announcement
 ) VALUES (
   1, 'Product Name', 'One-line value proposition for your product.', 'Company Name',
   '{"twitter":"","github":"","discord":"","instagram":""}',
   '{"appUrl":"","appStoreUrl":"","playStoreUrl":""}',
-  '{"waitlist":true,"giveaway":true,"blog":true,"contact":true}',
+  '{"waitlist":true,"giveaway":true,"blog":true,"contact":true,"pricing":false,"changelog":false}',
   '{"search":true,"themeToggle":true}',
   '{"preset":"bold","accentColor":"#9747ff","borderRadius":"0.625rem","headingWeight":"400","fontFamily":"inter","heroVariant":"gradient","headerVariant":"blur","footerVariant":"simple","postCardVariant":"bordered","ctaSectionVariant":"gradient"}',
-  NULL
+  NULL,
+  '{"enabled":false,"text":"","linkUrl":"","linkText":""}'
 );
 
 -- ============================================================
--- System Pages (7 rows) — now with layout column
+-- System Pages (9 rows) — now with layout column
 -- ============================================================
 
 INSERT OR REPLACE INTO pages (slug, parent_slug, title, description, content, faqs, related_pages, cover_image, metadata, layout, published, sort_order, updated_at) VALUES
@@ -71,7 +72,19 @@ INSERT OR REPLACE INTO pages (slug, parent_slug, title, description, content, fa
 
 ('privacy', NULL, 'Privacy Policy', 'How we collect, use, and protect your data.',
   '[{"type":"heading","text":"Privacy Policy","level":2},{"type":"paragraph","text":"Your privacy is important to us. This policy explains how we handle your personal information."},{"type":"heading","text":"1. Information We Collect","level":3},{"type":"paragraph","text":"We collect information you provide directly, such as your name and email address when you sign up for the waitlist."},{"type":"heading","text":"2. How We Use Information","level":3},{"type":"paragraph","text":"We use your information to provide and improve our services, send you updates, and communicate with you."},{"type":"heading","text":"3. Data Security","level":3},{"type":"paragraph","text":"We implement appropriate security measures to protect your personal information."}]',
-  NULL, NULL, NULL, NULL, 'default', 1, 6, datetime('now'));
+  NULL, NULL, NULL, NULL, 'default', 1, 6, datetime('now')),
+
+('pricing', NULL, 'Pricing', 'Simple, transparent pricing for every stage of growth.',
+  '[{"type":"heading","text":"Simple Pricing","level":2},{"type":"paragraph","text":"Choose the plan that fits your needs. No hidden fees, cancel anytime."}]',
+  '[{"question":"Can I change plans later?","answer":"Yes, you can upgrade or downgrade at any time. Changes take effect on your next billing cycle."},{"question":"Is there a free trial?","answer":"Yes, all paid plans include a 14-day free trial with full access to features."},{"question":"Do you offer refunds?","answer":"Yes, we offer a 30-day money-back guarantee on all plans."}]',
+  '[{"title":"Join the Waitlist","description":"Get early access and special pricing.","href":"/waitlist"},{"title":"Contact Us","description":"Have questions? Get in touch.","href":"/contact"}]',
+  NULL, '{"tiers":[{"name":"Free","price":"$0","period":"forever","description":"Get started with the basics.","features":["Up to 3 projects","Basic analytics","Community support"],"cta":"Get Started","ctaUrl":"/waitlist","highlighted":false},{"name":"Pro","price":"$19","period":"/month","description":"Everything you need to grow.","features":["Unlimited projects","Advanced analytics","Priority support","Custom integrations","API access"],"cta":"Start Free Trial","ctaUrl":"/waitlist","highlighted":true},{"name":"Enterprise","price":"Custom","period":"","description":"For large teams and organizations.","features":["Everything in Pro","Dedicated account manager","SSO & SAML","Custom SLA","On-premise option"],"cta":"Contact Sales","ctaUrl":"/contact","highlighted":false}]}', 'default', 1, 7, datetime('now')),
+
+('changelog', NULL, 'Changelog', 'Stay up to date with the latest product updates and improvements.',
+  '[{"type":"heading","text":"Changelog","level":2},{"type":"paragraph","text":"Track all the latest updates, improvements, and bug fixes."}]',
+  '[{"question":"How often do you release updates?","answer":"We ship updates weekly, with major releases approximately once a month."},{"question":"Can I request a feature?","answer":"Absolutely! Use our contact form to submit feature requests."}]',
+  '[{"title":"Read the Blog","description":"In-depth articles about our latest features.","href":"/blog"},{"title":"Contact Us","description":"Have feedback? Let us know.","href":"/contact"}]',
+  NULL, '{"entries":[{"date":"2026-03-01","title":"Launch Announcement","description":"We are excited to announce the launch of our product!","tags":["launch","announcement"]},{"date":"2026-02-15","title":"Beta Release","description":"Our beta release is now available for early testers.","tags":["beta","release"]}]}', 'default', 1, 8, datetime('now'));
 
 -- ============================================================
 -- Content Pages (6 rows)

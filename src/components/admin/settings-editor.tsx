@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { themePresets } from "@/config/theme-presets";
-import type { SiteSettings, ThemeSettings } from "@/types/site-settings";
+import type { SiteSettings, ThemeSettings, AnnouncementSettings } from "@/types/site-settings";
 
 interface SettingsEditorProps {
 	settings: SiteSettings;
@@ -91,6 +91,9 @@ export function SettingsEditor({ settings }: SettingsEditorProps) {
 	// Theme
 	const [theme, setTheme] = useState<ThemeSettings>(settings.theme);
 
+	// Announcement
+	const [announcement, setAnnouncement] = useState<AnnouncementSettings>(settings.announcement);
+
 	// Save state
 	const [isSaving, setIsSaving] = useState(false);
 	const [message, setMessage] = useState("");
@@ -108,6 +111,10 @@ export function SettingsEditor({ settings }: SettingsEditorProps) {
 
 	function updateTheme(partial: Partial<ThemeSettings>) {
 		setTheme((prev) => ({ ...prev, ...partial }));
+	}
+
+	function updateAnnouncement(partial: Partial<AnnouncementSettings>) {
+		setAnnouncement((prev) => ({ ...prev, ...partial }));
 	}
 
 	function applyPreset(presetKey: string) {
@@ -134,6 +141,7 @@ export function SettingsEditor({ settings }: SettingsEditorProps) {
 					features,
 					ui,
 					theme,
+					announcement,
 				}),
 			});
 
@@ -257,6 +265,55 @@ export function SettingsEditor({ settings }: SettingsEditorProps) {
 							<Switch id={`ui-${key}`} checked={enabled} onCheckedChange={() => toggleUi(key)} />
 						</div>
 					))}
+				</CardContent>
+			</Card>
+
+			{/* Announcement Bar */}
+			<Card>
+				<CardHeader>
+					<CardTitle>Announcement Bar</CardTitle>
+					<CardDescription>Show a dismissable banner at the top of the site</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="flex items-center justify-between">
+						<Label htmlFor="announcement-enabled">Enabled</Label>
+						<Switch
+							id="announcement-enabled"
+							checked={announcement.enabled}
+							onCheckedChange={(checked) => updateAnnouncement({ enabled: checked })}
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="announcement-text">Text</Label>
+						<Input
+							id="announcement-text"
+							value={announcement.text}
+							onChange={(e) => updateAnnouncement({ text: e.target.value })}
+							placeholder="We just launched v2.0!"
+							maxLength={200}
+						/>
+					</div>
+					<div className="grid gap-4 sm:grid-cols-2">
+						<div className="space-y-2">
+							<Label htmlFor="announcement-link-url">Link URL (optional)</Label>
+							<Input
+								id="announcement-link-url"
+								value={announcement.linkUrl}
+								onChange={(e) => updateAnnouncement({ linkUrl: e.target.value })}
+								placeholder="https://..."
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="announcement-link-text">Link Text (optional)</Label>
+							<Input
+								id="announcement-link-text"
+								value={announcement.linkText}
+								onChange={(e) => updateAnnouncement({ linkText: e.target.value })}
+								placeholder="Learn more"
+								maxLength={100}
+							/>
+						</div>
+					</div>
 				</CardContent>
 			</Card>
 

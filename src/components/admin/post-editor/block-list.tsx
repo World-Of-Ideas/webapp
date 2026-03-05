@@ -26,6 +26,25 @@ const BLOCK_TYPES: { type: ContentBlockType; label: string }[] = [
 	{ type: "table", label: "Table" },
 	{ type: "cta", label: "CTA" },
 	{ type: "download", label: "Download" },
+	{ type: "video", label: "Video" },
+	{ type: "testimonial", label: "Testimonial" },
+	{ type: "code", label: "Code" },
+	{ type: "buttonGroup", label: "Button Group" },
+	{ type: "featureGrid", label: "Feature Grid" },
+	{ type: "logoGrid", label: "Logo Grid" },
+	{ type: "statsCounter", label: "Stats Counter" },
+	{ type: "divider", label: "Divider" },
+	{ type: "accordion", label: "Accordion" },
+	{ type: "imageGallery", label: "Image Gallery" },
+	{ type: "embed", label: "Embed" },
+	{ type: "banner", label: "Banner" },
+	{ type: "comparisonTable", label: "Comparison Table" },
+	{ type: "timeline", label: "Timeline" },
+	{ type: "spacer", label: "Spacer" },
+	{ type: "tabs", label: "Tabs" },
+	{ type: "review", label: "Review" },
+	{ type: "emailCapture", label: "Email Capture" },
+	{ type: "tableOfContents", label: "Table of Contents" },
 ];
 
 function getDefaultBlock(type: ContentBlockType): ContentBlock {
@@ -43,11 +62,49 @@ function getDefaultBlock(type: ContentBlockType): ContentBlock {
 		case "quote":
 			return { type: "quote", text: "" };
 		case "table":
-			return { type: "table", headers: ["Column 1"], rows: [[""] ] };
+			return { type: "table", headers: ["Column 1"], rows: [[""]] };
 		case "cta":
 			return { type: "cta", text: "" };
 		case "download":
 			return { type: "download", downloadUrl: "", downloadLabel: "" };
+		case "video":
+			return { type: "video", videoUrl: "", text: "" };
+		case "testimonial":
+			return { type: "testimonial", text: "", author: "", role: "", company: "" };
+		case "code":
+			return { type: "code", code: "", language: "" };
+		case "buttonGroup":
+			return { type: "buttonGroup", buttons: [{ label: "", href: "", variant: "primary" }] };
+		case "featureGrid":
+			return { type: "featureGrid", features: [{ title: "", description: "" }], columns: 3 };
+		case "logoGrid":
+			return { type: "logoGrid", logos: [{ image: "", alt: "" }], columns: 4 };
+		case "statsCounter":
+			return { type: "statsCounter", stats: [{ value: "", label: "" }], columns: 3 };
+		case "divider":
+			return { type: "divider", dividerStyle: "line" };
+		case "accordion":
+			return { type: "accordion", accordionItems: [{ title: "", content: "" }] };
+		case "imageGallery":
+			return { type: "imageGallery", gallery: [{ url: "", alt: "" }], columns: 3 };
+		case "embed":
+			return { type: "embed", embedUrl: "", embedHeight: 400 };
+		case "banner":
+			return { type: "banner", text: "", bannerVariant: "gradient" };
+		case "comparisonTable":
+			return { type: "comparisonTable", comparisonColumns: ["Us", "Others"], comparisonRows: [{ feature: "", values: ["", ""] }] };
+		case "timeline":
+			return { type: "timeline", timelineEvents: [{ date: "", title: "", description: "" }] };
+		case "spacer":
+			return { type: "spacer", spacerSize: "md" };
+		case "tabs":
+			return { type: "tabs", tabs: [{ label: "Tab 1", content: "" }] };
+		case "review":
+			return { type: "review", text: "", rating: 5, author: "" };
+		case "emailCapture":
+			return { type: "emailCapture", emailCaptureHeading: "Stay updated", emailCapturePlaceholder: "Enter your email", emailCaptureButtonText: "Subscribe" };
+		case "tableOfContents":
+			return { type: "tableOfContents", tocTitle: "Table of Contents", tocMaxLevel: 3 };
 	}
 }
 

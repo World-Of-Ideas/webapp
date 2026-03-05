@@ -95,7 +95,7 @@ describe("resend", () => {
 				subject: "Test",
 				html: "<p>Hello</p>",
 			}),
-		).rejects.toThrow("Resend API error (401): Invalid API key");
+		).rejects.toThrow("Email send failed (401)");
 	});
 
 	it("throws on 500 server error", async () => {
@@ -111,7 +111,7 @@ describe("resend", () => {
 				subject: "Test",
 				html: "<p>Hello</p>",
 			}),
-		).rejects.toThrow("Resend API error (500): Internal Server Error");
+		).rejects.toThrow("Email send failed (500)");
 	});
 
 	it("passes AbortSignal for 5s timeout", async () => {

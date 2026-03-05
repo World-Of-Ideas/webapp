@@ -35,6 +35,7 @@ function cleanup() {
  * @returns true if request is allowed, false if rate-limited
  */
 export function checkRateLimit(key: string, maxRequests: number, windowMs: number): boolean {
+	if (key.length > 255) return false;
 	cleanup();
 	const now = Date.now();
 	const entry = store.get(key);

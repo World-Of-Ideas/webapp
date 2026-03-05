@@ -22,11 +22,12 @@ interface PageRow {
 	title: string;
 	description: string | null;
 	published: boolean;
+	scheduledPublishAt: string | null;
 	depth: number;
 }
 
 function buildTree(
-	pages: { slug: string; parentSlug: string | null; title: string; description: string | null; published: boolean }[],
+	pages: { slug: string; parentSlug: string | null; title: string; description: string | null; published: boolean; scheduledPublishAt: string | null }[],
 ): PageRow[] {
 	const childrenMap = new Map<string | null, typeof pages>();
 	for (const page of pages) {
@@ -154,17 +155,24 @@ export default async function PagesPage() {
 											: "-"}
 									</TableCell>
 									<TableCell>
-										<Badge
-											variant={
-												page.published
-													? "default"
-													: "secondary"
-											}
-										>
-											{page.published
-												? "Published"
-												: "Draft"}
-										</Badge>
+										<div className="flex gap-1">
+											<Badge
+												variant={
+													page.published
+														? "default"
+														: "secondary"
+												}
+											>
+												{page.published
+													? "Published"
+													: "Draft"}
+											</Badge>
+											{page.scheduledPublishAt && new Date(page.scheduledPublishAt + "Z") > new Date() && (
+												<Badge variant="outline">
+													Scheduled
+												</Badge>
+											)}
+										</div>
 									</TableCell>
 								</TableRow>
 							))}

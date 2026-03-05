@@ -20,10 +20,10 @@ export async function getSeoAudit(): Promise<SeoAuditItem[]> {
 	const db = await getDb();
 	const items: SeoAuditItem[] = [];
 
-	// Published pages
-	const allPages = await db.query.pages.findMany({
-		where: eq(pages.published, true),
-	});
+	const [allPages, allPosts] = await Promise.all([
+		db.query.pages.findMany({ where: eq(pages.published, true) }),
+		db.query.posts.findMany({ where: eq(posts.published, true) }),
+	]);
 
 	for (const page of allPages) {
 		const faqs = page.faqs as { question: string; answer: string }[] | null;
@@ -42,11 +42,6 @@ export async function getSeoAudit(): Promise<SeoAuditItem[]> {
 			tagCount: 0,
 		});
 	}
-
-	// Published posts
-	const allPosts = await db.query.posts.findMany({
-		where: eq(posts.published, true),
-	});
 
 	for (const post of allPosts) {
 		const faqs = post.faqs as { question: string; answer: string }[] | null;

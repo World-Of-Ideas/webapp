@@ -1,3 +1,10 @@
+export interface AnnouncementSettings {
+	enabled: boolean;
+	text: string;
+	linkUrl: string;
+	linkText: string;
+}
+
 export interface SiteSettings {
 	name: string;
 	description: string;
@@ -8,6 +15,7 @@ export interface SiteSettings {
 	ui: Record<string, boolean>;
 	theme: ThemeSettings;
 	logoUrl: string | null;
+	announcement: AnnouncementSettings;
 }
 
 export interface ThemeSettings {

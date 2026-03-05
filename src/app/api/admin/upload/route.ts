@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 			key = path;
 		} else {
 			// Sanitize filename: allow only alphanumeric, dots, hyphens, underscores
-			const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+			const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 100);
 			key = `uploads/${crypto.randomUUID()}/${safeName}`;
 		}
 

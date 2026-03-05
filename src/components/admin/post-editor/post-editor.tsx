@@ -23,6 +23,7 @@ interface PostData {
 	author: string;
 	tags: string[] | null;
 	published: boolean;
+	scheduledPublishAt: string | null;
 }
 
 interface PostEditorProps {
@@ -49,6 +50,11 @@ export function PostEditor({ post }: PostEditorProps) {
 	);
 	const [coverImage, setCoverImage] = useState(post?.coverImage ?? "");
 	const [published, setPublished] = useState(post?.published ?? false);
+	const [scheduledPublishAt, setScheduledPublishAt] = useState(
+		post?.scheduledPublishAt
+			? new Date(post.scheduledPublishAt + "Z").toISOString().slice(0, 16)
+			: "",
+	);
 	const [content, setContent] = useState<ContentBlock[]>(
 		post?.content ?? [],
 	);
@@ -81,6 +87,9 @@ export function PostEditor({ post }: PostEditorProps) {
 			tags,
 			coverImage,
 			published,
+			scheduledPublishAt: scheduledPublishAt
+				? new Date(scheduledPublishAt).toISOString()
+				: null,
 			content,
 			faqs,
 		};
@@ -193,6 +202,21 @@ export function PostEditor({ post }: PostEditorProps) {
 					disabled={isSaving}
 				/>
 				<Label htmlFor="post-published">Published</Label>
+			</div>
+
+			<div className="space-y-2">
+				<Label htmlFor="post-scheduled">Scheduled Publish Date (optional)</Label>
+				<Input
+					id="post-scheduled"
+					type="datetime-local"
+					value={scheduledPublishAt}
+					onChange={(e) => setScheduledPublishAt(e.target.value)}
+					disabled={isSaving}
+					className="max-w-xs"
+				/>
+				<p className="text-xs text-muted-foreground">
+					If set, the post will not be visible until this date, even if published.
+				</p>
 			</div>
 
 			<div className="space-y-2">

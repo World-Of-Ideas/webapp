@@ -47,6 +47,19 @@ describe("blog (integration)", () => {
 			expect(post.published).toBe(true);
 			expect(post.publishedAt).toBeTruthy();
 		});
+
+		it("stores scheduledPublishAt", async () => {
+			const post = await createPost({
+				slug: "scheduled-post",
+				title: "Scheduled",
+				description: "Will publish later",
+				content: [],
+				scheduledPublishAt: "2099-01-01T00:00:00Z",
+			});
+
+			const found = await getPostBySlug("scheduled-post");
+			expect(found?.scheduledPublishAt).toBe("2099-01-01T00:00:00Z");
+		});
 	});
 
 	describe("getPublishedPosts", () => {
@@ -57,6 +70,51 @@ describe("blog (integration)", () => {
 			const { items, total } = await getPublishedPosts(1, 10);
 			expect(total).toBe(1);
 			expect(items[0].slug).toBe("live");
+		});
+
+		it("excludes posts scheduled in the future", async () => {
+			await createPost({
+				slug: "future-post",
+				title: "Future",
+				description: "d",
+				content: [],
+				published: true,
+				scheduledPublishAt: "2099-01-01T00:00:00Z",
+			});
+
+			const { items, total } = await getPublishedPosts(1, 10);
+			expect(total).toBe(0);
+			expect(items).toHaveLength(0);
+		});
+
+		it("includes posts with past scheduledPublishAt", async () => {
+			await createPost({
+				slug: "past-scheduled",
+				title: "Past Scheduled",
+				description: "d",
+				content: [],
+				published: true,
+				scheduledPublishAt: "2020-01-01T00:00:00Z",
+			});
+
+			const { items, total } = await getPublishedPosts(1, 10);
+			expect(total).toBe(1);
+			expect(items[0].slug).toBe("past-scheduled");
+		});
+
+		it("includes published posts without scheduledPublishAt", async () => {
+			await createPost({
+				slug: "no-schedule",
+				title: "No Schedule",
+				description: "d",
+				content: [],
+				published: true,
+				scheduledPublishAt: undefined,
+			});
+
+			const { items, total } = await getPublishedPosts(1, 10);
+			expect(total).toBe(1);
+			expect(items[0].slug).toBe("no-schedule");
 		});
 	});
 
@@ -71,6 +129,20 @@ describe("blog (integration)", () => {
 			await createPost({ slug: "live", title: "Live", description: "l", content: [], published: true });
 			const found = await getPublishedPostBySlug("live");
 			expect(found?.slug).toBe("live");
+		});
+
+		it("returns undefined for future-scheduled post", async () => {
+			await createPost({
+				slug: "future-slug",
+				title: "Future",
+				description: "d",
+				content: [],
+				published: true,
+				scheduledPublishAt: "2099-01-01T00:00:00Z",
+			});
+
+			const found = await getPublishedPostBySlug("future-slug");
+			expect(found).toBeUndefined();
 		});
 	});
 
@@ -87,6 +159,12 @@ describe("blog (integration)", () => {
 
 			const updated = await updatePost(post.id, { published: true });
 			expect(updated.publishedAt).toBeTruthy();
+		});
+
+		it("can set scheduledPublishAt", async () => {
+			const post = await createPost({ slug: "schedule-me", title: "S", description: "d", content: [] });
+			const updated = await updatePost(post.id, { scheduledPublishAt: "2099-01-01T00:00:00Z" });
+			expect(updated.scheduledPublishAt).toBe("2099-01-01T00:00:00Z");
 		});
 	});
 
@@ -113,6 +191,21 @@ describe("blog (integration)", () => {
 			const count = await getPostCount();
 			expect(count).toBe(2);
 		});
+
+		it("excludes future-scheduled posts from count", async () => {
+			await createPost({
+				slug: "future-count",
+				title: "Future",
+				description: "d",
+				content: [],
+				published: true,
+				scheduledPublishAt: "2099-01-01T00:00:00Z",
+			});
+			await createPost({ slug: "live-count", title: "Live", description: "l", content: [], published: true });
+
+			const count = await getPostCount();
+			expect(count).toBe(1);
+		});
 	});
 
 	describe("getRecentPosts", () => {
@@ -123,6 +216,22 @@ describe("blog (integration)", () => {
 
 			const recent = await getRecentPosts(5);
 			expect(recent).toHaveLength(2);
+		});
+
+		it("excludes future-scheduled posts", async () => {
+			await createPost({ slug: "live-recent", title: "Live", description: "d", content: [], published: true });
+			await createPost({
+				slug: "future-recent",
+				title: "Future",
+				description: "d",
+				content: [],
+				published: true,
+				scheduledPublishAt: "2099-01-01T00:00:00Z",
+			});
+
+			const recent = await getRecentPosts(5);
+			expect(recent).toHaveLength(1);
+			expect(recent[0].slug).toBe("live-recent");
 		});
 	});
 

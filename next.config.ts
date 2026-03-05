@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
 					{ key: "X-Content-Type-Options", value: "nosniff" },
 					{ key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
 					{ key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+					// unsafe-inline required: Next.js 16 inline scripts + Tailwind styles
 					{
 						key: "Content-Security-Policy",
 						value: [

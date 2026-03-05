@@ -27,8 +27,8 @@ export async function sendEmail(apiKey: string, options: SendEmailOptions): Prom
 		});
 
 		if (!response.ok) {
-			const text = await response.text();
-			throw new Error(`Resend API error (${response.status}): ${text}`);
+			await response.body?.cancel();
+			throw new Error(`Email send failed (${response.status})`);
 		}
 	} finally {
 		clearTimeout(timeout);

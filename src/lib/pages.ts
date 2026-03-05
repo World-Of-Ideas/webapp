@@ -1,8 +1,14 @@
-import { eq, and, count } from "drizzle-orm";
+import { eq, and, count, or, isNull, lte, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { pages } from "@/db/schema";
 
-const SYSTEM_SLUGS = new Set(["home", "waitlist", "giveaway", "contact", "blog", "terms", "privacy"]);
+/** Published AND (no schedule OR schedule has passed) */
+const isPageLive = and(
+	eq(pages.published, true),
+	or(isNull(pages.scheduledPublishAt), lte(pages.scheduledPublishAt, sql`datetime('now')`)),
+);
+
+const SYSTEM_SLUGS = new Set(["home", "waitlist", "giveaway", "contact", "blog", "terms", "privacy", "pricing", "changelog"]);
 const RESERVED_SLUGS = new Set([
 	...SYSTEM_SLUGS,
 	"admin", "api", "feed.xml",
@@ -27,14 +33,22 @@ export async function getPageBySlug(slug: string) {
 export async function getPublishedPageBySlug(slug: string) {
 	const db = await getDb();
 	return db.query.pages.findFirst({
-		where: and(eq(pages.slug, slug), eq(pages.published, true)),
+		where: and(
+			eq(pages.slug, slug),
+			eq(pages.published, true),
+			or(isNull(pages.scheduledPublishAt), lte(pages.scheduledPublishAt, sql`datetime('now')`)),
+		),
 	});
 }
 
 export async function getChildPages(parentSlug: string) {
 	const db = await getDb();
 	return db.query.pages.findMany({
-		where: and(eq(pages.parentSlug, parentSlug), eq(pages.published, true)),
+		where: and(
+			eq(pages.parentSlug, parentSlug),
+			eq(pages.published, true),
+			or(isNull(pages.scheduledPublishAt), lte(pages.scheduledPublishAt, sql`datetime('now')`)),
+		),
 		orderBy: (p, { asc }) => [asc(p.sortOrder)],
 	});
 }
@@ -49,7 +63,7 @@ export async function getAllPages() {
 export async function getPublishedContentPages() {
 	const db = await getDb();
 	return db.query.pages.findMany({
-		where: eq(pages.published, true),
+		where: isPageLive,
 		orderBy: (p, { asc }) => [asc(p.sortOrder)],
 	});
 }
@@ -66,6 +80,7 @@ export async function createPage(data: {
 	metadata?: unknown;
 	layout?: string;
 	published?: boolean;
+	scheduledPublishAt?: string | null;
 	sortOrder?: number;
 }) {
 	const db = await getDb();
@@ -83,6 +98,7 @@ export async function createPage(data: {
 			metadata: (data.metadata as typeof pages.$inferInsert.metadata) ?? null,
 			layout: data.layout ?? "default",
 			published: data.published ?? true,
+			scheduledPublishAt: data.scheduledPublishAt ?? null,
 			sortOrder: data.sortOrder ?? 0,
 		})
 		.returning();
@@ -102,6 +118,7 @@ export async function updatePage(
 		metadata: unknown;
 		layout: string;
 		published: boolean;
+		scheduledPublishAt: string | null;
 		sortOrder: number;
 	}>,
 ) {
@@ -120,6 +137,7 @@ export async function updatePage(
 	if (data.metadata !== undefined) updateData.metadata = data.metadata;
 	if (data.layout !== undefined) updateData.layout = data.layout;
 	if (data.published !== undefined) updateData.published = data.published;
+	if (data.scheduledPublishAt !== undefined) updateData.scheduledPublishAt = data.scheduledPublishAt;
 	if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
 
 	const [page] = await db

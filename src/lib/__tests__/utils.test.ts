@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isSafeUrl } from "../utils";
+import { isSafeUrl, slugifyHeading } from "../utils";
 
 describe("isSafeUrl", () => {
 	describe("safe URLs", () => {
@@ -98,5 +98,39 @@ describe("isSafeUrl", () => {
 		it("returns true for whitespace-only string", () => {
 			expect(isSafeUrl("   ")).toBe(true);
 		});
+	});
+});
+
+describe("slugifyHeading", () => {
+	it("converts basic text to slug", () => {
+		expect(slugifyHeading("Hello World")).toBe("hello-world");
+	});
+
+	it("collapses multiple spaces into single hyphen", () => {
+		expect(slugifyHeading("  Multiple   Spaces  ")).toBe("multiple-spaces");
+	});
+
+	it("strips special characters", () => {
+		expect(slugifyHeading("What's New? (2024)")).toBe("what-s-new-2024");
+	});
+
+	it("handles numbers", () => {
+		expect(slugifyHeading("Step 1: Getting Started")).toBe("step-1-getting-started");
+	});
+
+	it("returns already slugified text unchanged", () => {
+		expect(slugifyHeading("already-slugified")).toBe("already-slugified");
+	});
+
+	it("returns empty string for empty input", () => {
+		expect(slugifyHeading("")).toBe("");
+	});
+
+	it("strips non-ascii unicode characters", () => {
+		expect(slugifyHeading("Über Grüße")).toBe("ber-gr-e");
+	});
+
+	it("returns empty string when all characters are special", () => {
+		expect(slugifyHeading("!@#$%^&*()")).toBe("");
 	});
 });

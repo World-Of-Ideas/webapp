@@ -1,7 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl;
+
+	// Check for redirects on public pages only
+	if (!pathname.startsWith("/admin") && !pathname.startsWith("/api") && !pathname.startsWith("/_next")) {
+		try {
+			const { getRedirectByPath } = await import("@/lib/redirects");
+			const redirect = await getRedirectByPath(pathname);
+			if (redirect) {
+				const destination = redirect.toUrl.startsWith("/")
+					? new URL(redirect.toUrl, request.url)
+					: redirect.toUrl;
+				return NextResponse.redirect(destination, redirect.statusCode);
+			}
+		} catch {
+			// Continue if redirect lookup fails
+		}
+	}
 
 	// Admin route protection (first line of defense — routes still validate sessions)
 	const isAdminPage = pathname.startsWith("/admin") && pathname !== "/admin";
@@ -28,5 +44,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-	matcher: ["/admin/:path*", "/api/admin/:path*"],
+	matcher: [
+		"/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|css|js|map)$).*)",
+	],
 };

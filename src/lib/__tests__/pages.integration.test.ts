@@ -22,6 +22,8 @@ describe("pages (integration)", () => {
 		it("recognizes system slugs", () => {
 			expect(isSystemPage("home")).toBe(true);
 			expect(isSystemPage("waitlist")).toBe(true);
+			expect(isSystemPage("pricing")).toBe(true);
+			expect(isSystemPage("changelog")).toBe(true);
 			expect(isSystemPage("custom")).toBe(false);
 		});
 
@@ -29,6 +31,8 @@ describe("pages (integration)", () => {
 			expect(isReservedSlug("admin")).toBe(true);
 			expect(isReservedSlug("api")).toBe(true);
 			expect(isReservedSlug("home")).toBe(true);
+			expect(isReservedSlug("pricing")).toBe(true);
+			expect(isReservedSlug("changelog")).toBe(true);
 			expect(isReservedSlug("my-page")).toBe(false);
 		});
 	});
@@ -62,12 +66,35 @@ describe("pages (integration)", () => {
 			expect(found?.faqs).toEqual([{ question: "Q?", answer: "A." }]);
 			expect(found?.metadata).toEqual({ custom: true });
 		});
+
+		it("stores scheduledPublishAt", async () => {
+			await createPage({
+				slug: "scheduled-page",
+				title: "Scheduled Page",
+				scheduledPublishAt: "2099-01-01T00:00:00Z",
+			});
+
+			const found = await getPageBySlug("scheduled-page");
+			expect(found?.scheduledPublishAt).toBe("2099-01-01T00:00:00Z");
+		});
 	});
 
 	describe("getPublishedPageBySlug", () => {
 		it("returns null for unpublished page", async () => {
 			await createPage({ slug: "draft", title: "Draft", published: false });
 			const found = await getPublishedPageBySlug("draft");
+			expect(found).toBeUndefined();
+		});
+
+		it("returns undefined for future-scheduled page", async () => {
+			await createPage({
+				slug: "future-page",
+				title: "Future Page",
+				published: true,
+				scheduledPublishAt: "2099-01-01T00:00:00Z",
+			});
+
+			const found = await getPublishedPageBySlug("future-page");
 			expect(found).toBeUndefined();
 		});
 	});
@@ -89,6 +116,20 @@ describe("pages (integration)", () => {
 			await createPage({ slug: "hidden", title: "Hidden", parentSlug: "parent", published: false });
 
 			const children = await getChildPages("parent");
+			expect(children).toHaveLength(0);
+		});
+
+		it("excludes future-scheduled children", async () => {
+			await createPage({ slug: "parent-sched", title: "Parent" });
+			await createPage({
+				slug: "future-child",
+				title: "Future Child",
+				parentSlug: "parent-sched",
+				published: true,
+				scheduledPublishAt: "2099-01-01T00:00:00Z",
+			});
+
+			const children = await getChildPages("parent-sched");
 			expect(children).toHaveLength(0);
 		});
 	});
@@ -130,6 +171,20 @@ describe("pages (integration)", () => {
 
 			const published = await getPublishedContentPages();
 			expect(published).toHaveLength(1);
+		});
+
+		it("getPublishedContentPages excludes future-scheduled pages", async () => {
+			await createPage({ slug: "live-page", title: "Live" });
+			await createPage({
+				slug: "future-content",
+				title: "Future",
+				published: true,
+				scheduledPublishAt: "2099-01-01T00:00:00Z",
+			});
+
+			const published = await getPublishedContentPages();
+			expect(published).toHaveLength(1);
+			expect(published[0].slug).toBe("live-page");
 		});
 	});
 });

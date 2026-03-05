@@ -83,11 +83,9 @@ export async function getGiveawayEntries(page: number, limit: number) {
 
 export async function getGiveawayStats() {
 	const db = await getDb();
-	const [{ totalEntries }] = await db
-		.select({ totalEntries: count() })
-		.from(giveawayEntries);
-	const [{ totalActions }] = await db
-		.select({ totalActions: count() })
-		.from(giveawayActions);
+	const [[{ totalEntries }], [{ totalActions }]] = await Promise.all([
+		db.select({ totalEntries: count() }).from(giveawayEntries),
+		db.select({ totalActions: count() }).from(giveawayActions),
+	]);
 	return { totalEntries, totalActions };
 }

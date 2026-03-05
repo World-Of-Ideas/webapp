@@ -1,6 +1,12 @@
-import { eq, desc, sql, count, and, ne } from "drizzle-orm";
+import { eq, desc, sql, count, and, ne, or, isNull, lte } from "drizzle-orm";
 import { getDb } from "@/db";
 import { posts } from "@/db/schema";
+
+/** Published AND (no schedule OR schedule has passed) */
+const isLive = and(
+	eq(posts.published, true),
+	or(isNull(posts.scheduledPublishAt), lte(posts.scheduledPublishAt, sql`datetime('now')`)),
+);
 
 export async function getPublishedPosts(page: number, limit: number) {
 	const db = await getDb();
@@ -8,7 +14,7 @@ export async function getPublishedPosts(page: number, limit: number) {
 
 	const [items, [{ total }]] = await Promise.all([
 		db.query.posts.findMany({
-			where: eq(posts.published, true),
+			where: isLive,
 			orderBy: [desc(posts.publishedAt), desc(posts.createdAt), desc(posts.id)],
 			limit,
 			offset,
@@ -16,7 +22,7 @@ export async function getPublishedPosts(page: number, limit: number) {
 		db
 			.select({ total: count() })
 			.from(posts)
-			.where(eq(posts.published, true)),
+			.where(isLive),
 	]);
 
 	return { items, total };
@@ -32,7 +38,11 @@ export async function getPostBySlug(slug: string) {
 export async function getPublishedPostBySlug(slug: string) {
 	const db = await getDb();
 	return db.query.posts.findFirst({
-		where: and(eq(posts.slug, slug), eq(posts.published, true)),
+		where: and(
+			eq(posts.slug, slug),
+			eq(posts.published, true),
+			or(isNull(posts.scheduledPublishAt), lte(posts.scheduledPublishAt, sql`datetime('now')`)),
+		),
 	});
 }
 
@@ -55,6 +65,7 @@ export async function getRelatedPosts(currentSlug: string, tags: string[], limit
 	const results = await db.all(
 		sql`SELECT DISTINCT p.slug, p.title, p.description, p.cover_image, p.published_at, p.tags FROM posts p, json_each(p.tags) AS t
 			WHERE p.published = 1
+			AND (p.scheduled_publish_at IS NULL OR p.scheduled_publish_at <= datetime('now'))
 			AND p.slug != ${currentSlug}
 			AND t.value IN (${sql.join(
 				tags.map((tag) => sql`${tag}`),
@@ -70,7 +81,7 @@ export async function getRelatedPosts(currentSlug: string, tags: string[], limit
 export async function getRecentPosts(limit = 3) {
 	const db = await getDb();
 	return db.query.posts.findMany({
-		where: eq(posts.published, true),
+		where: isLive,
 		orderBy: [desc(posts.publishedAt)],
 		limit,
 	});
@@ -93,6 +104,7 @@ export async function createPost(data: {
 	author?: string;
 	tags?: unknown;
 	published?: boolean;
+	scheduledPublishAt?: string | null;
 }) {
 	const db = await getDb();
 	const now = new Date().toISOString();
@@ -109,6 +121,7 @@ export async function createPost(data: {
 			tags: (data.tags as typeof posts.$inferInsert.tags) ?? null,
 			published: data.published ?? false,
 			publishedAt: data.published ? now : null,
+			scheduledPublishAt: data.scheduledPublishAt ?? null,
 			createdAt: now,
 			updatedAt: now,
 		})
@@ -128,6 +141,7 @@ export async function updatePost(
 		author: string;
 		tags: unknown;
 		published: boolean;
+		scheduledPublishAt: string | null;
 	}>,
 ) {
 	const db = await getDb();
@@ -144,6 +158,7 @@ export async function updatePost(
 	if (data.author !== undefined) updateData.author = data.author;
 	if (data.tags !== undefined) updateData.tags = data.tags;
 	if (data.published !== undefined) updateData.published = data.published;
+	if (data.scheduledPublishAt !== undefined) updateData.scheduledPublishAt = data.scheduledPublishAt;
 
 	// Set publishedAt atomically using SQL CASE to avoid TOCTOU
 	if (data.published === true) {
@@ -171,6 +186,6 @@ export async function getPostCount() {
 	const [{ total }] = await db
 		.select({ total: count() })
 		.from(posts)
-		.where(eq(posts.published, true));
+		.where(isLive);
 	return total;
 }

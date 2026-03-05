@@ -39,6 +39,7 @@ export async function PUT(request: NextRequest) {
 			ui: b.ui as Record<string, boolean> | undefined,
 			theme: b.theme as Record<string, unknown> | undefined,
 			logoUrl: b.logoUrl as string | null | undefined,
+			announcement: b.announcement as Record<string, unknown> | undefined,
 		});
 
 		invalidateSiteSettingsCache();

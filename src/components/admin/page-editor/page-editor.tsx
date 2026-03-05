@@ -32,6 +32,7 @@ interface PageData {
 	metadata: Record<string, unknown> | null;
 	layout: string;
 	published: boolean;
+	scheduledPublishAt: string | null;
 	sortOrder: number;
 }
 
@@ -59,6 +60,11 @@ export function PageEditor({ page, isSystem, availableParentSlugs = [], existing
 	const [coverImage, setCoverImage] = useState(page?.coverImage ?? "");
 	const [layout, setLayout] = useState(page?.layout ?? "default");
 	const [published, setPublished] = useState(page?.published ?? true);
+	const [scheduledPublishAt, setScheduledPublishAt] = useState(
+		page?.scheduledPublishAt
+			? new Date(page.scheduledPublishAt + "Z").toISOString().slice(0, 16)
+			: "",
+	);
 	const [sortOrder, setSortOrder] = useState(page?.sortOrder ?? 0);
 	const [content, setContent] = useState<ContentBlock[]>(
 		page?.content ?? [],
@@ -113,6 +119,9 @@ export function PageEditor({ page, isSystem, availableParentSlugs = [], existing
 			coverImage,
 			layout,
 			published,
+			scheduledPublishAt: scheduledPublishAt
+				? new Date(scheduledPublishAt).toISOString()
+				: null,
 			sortOrder,
 			content,
 			faqs,
@@ -253,6 +262,21 @@ export function PageEditor({ page, isSystem, availableParentSlugs = [], existing
 					disabled={isSaving}
 				/>
 				<Label htmlFor="page-published">Published</Label>
+			</div>
+
+			<div className="space-y-2">
+				<Label htmlFor="page-scheduled">Scheduled Publish Date (optional)</Label>
+				<Input
+					id="page-scheduled"
+					type="datetime-local"
+					value={scheduledPublishAt}
+					onChange={(e) => setScheduledPublishAt(e.target.value)}
+					disabled={isSaving}
+					className="max-w-xs"
+				/>
+				<p className="text-xs text-muted-foreground">
+					If set, the page will not be visible until this date, even if published.
+				</p>
 			</div>
 
 			{/* SEO Settings */}

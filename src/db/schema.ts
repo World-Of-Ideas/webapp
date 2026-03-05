@@ -40,6 +40,7 @@ export const posts = sqliteTable(
 		tags: text("tags", { mode: "json" }).$type<string[]>(),
 		published: integer("published", { mode: "boolean" }).notNull().default(false),
 		publishedAt: text("published_at"),
+		scheduledPublishAt: text("scheduled_publish_at"),
 		createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 		updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
 	},
@@ -113,6 +114,7 @@ export const pages = sqliteTable(
 		metadata: text("metadata", { mode: "json" }).$type<Record<string, unknown>>(),
 		layout: text("layout").notNull().default("default"),
 		published: integer("published", { mode: "boolean" }).notNull().default(true),
+		scheduledPublishAt: text("scheduled_publish_at"),
 		sortOrder: integer("sort_order").notNull().default(0),
 		updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
 	},
@@ -140,12 +142,31 @@ export const siteSettings = sqliteTable("site_settings", {
 	author: text("author").notNull().default(""),
 	social: text("social").notNull().default("{}"),
 	productLinks: text("product_links").notNull().default("{}"),
-	features: text("features").notNull().default('{"waitlist":true,"giveaway":true,"blog":true,"contact":true}'),
+	features: text("features").notNull().default('{"waitlist":true,"giveaway":true,"blog":true,"contact":true,"pricing":false,"changelog":false}'),
 	ui: text("ui").notNull().default('{"search":true,"themeToggle":true}'),
 	theme: text("theme").notNull().default('{"preset":"bold","accentColor":"#9747ff","borderRadius":"0.625rem","headingWeight":"400","fontFamily":"inter","heroVariant":"gradient","headerVariant":"blur","footerVariant":"simple","postCardVariant":"bordered","ctaSectionVariant":"gradient"}'),
 	logoUrl: text("logo_url"),
+	announcement: text("announcement").notNull().default('{"enabled":false,"text":"","linkUrl":"","linkText":""}'),
 	updatedAt: text("updated_at").default(sql`(datetime('now'))`),
 });
+
+// --- Redirects ---
+
+export const redirects = sqliteTable(
+	"redirects",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		fromPath: text("from_path").notNull().unique(),
+		toUrl: text("to_url").notNull(),
+		statusCode: integer("status_code").notNull().default(301),
+		enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+		createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+		updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
+	},
+	(table) => [
+		index("idx_redirects_from").on(table.fromPath),
+	],
+);
 
 // --- Tracking Settings (single-row config) ---
 

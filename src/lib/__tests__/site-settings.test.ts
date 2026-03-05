@@ -17,11 +17,12 @@ describe("site-settings", () => {
 			expect(settings.author).toBe("");
 			expect(settings.social).toEqual({ twitter: "", github: "", discord: "", instagram: "" });
 			expect(settings.productLinks).toEqual({ appUrl: "", appStoreUrl: "", playStoreUrl: "" });
-			expect(settings.features).toEqual({ waitlist: true, giveaway: true, blog: true, contact: true });
+			expect(settings.features).toEqual({ waitlist: true, giveaway: true, blog: true, contact: true, pricing: false, changelog: false });
 			expect(settings.ui).toEqual({ search: true, themeToggle: true });
 			expect(settings.theme.preset).toBe("bold");
 			expect(settings.theme.accentColor).toBe("#9747ff");
 			expect(settings.logoUrl).toBeNull();
+			expect(settings.announcement).toEqual({ enabled: false, text: "", linkUrl: "", linkText: "" });
 		});
 
 		it("reads values from DB row", async () => {
@@ -65,8 +66,9 @@ describe("site-settings", () => {
 			expect(settings.name).toBe("Broken JSON");
 			// Falls back to defaults for invalid JSON
 			expect(settings.social).toEqual({ twitter: "", github: "", discord: "", instagram: "" });
-			expect(settings.features).toEqual({ waitlist: true, giveaway: true, blog: true, contact: true });
+			expect(settings.features).toEqual({ waitlist: true, giveaway: true, blog: true, contact: true, pricing: false, changelog: false });
 			expect(settings.theme.preset).toBe("bold");
+			expect(settings.announcement).toEqual({ enabled: false, text: "", linkUrl: "", linkText: "" });
 		});
 	});
 
@@ -153,6 +155,43 @@ describe("site-settings", () => {
 			const settings = await getSiteSettingsDirect();
 			expect(settings.ui.search).toBe(false);
 			expect(settings.ui.themeToggle).toBe(false);
+		});
+
+		it("can set announcement fields", async () => {
+			await updateSiteSettings({
+				announcement: { enabled: true, text: "We launched!" },
+			});
+			const settings = await getSiteSettingsDirect();
+			expect(settings.announcement.enabled).toBe(true);
+			expect(settings.announcement.text).toBe("We launched!");
+			// Defaults preserved for unset fields
+			expect(settings.announcement.linkUrl).toBe("");
+			expect(settings.announcement.linkText).toBe("");
+		});
+
+		it("merges announcement with existing values", async () => {
+			await updateSiteSettings({
+				announcement: { enabled: true, text: "Hello" },
+			});
+			await updateSiteSettings({
+				announcement: { linkUrl: "https://example.com", linkText: "Learn more" },
+			});
+			const settings = await getSiteSettingsDirect();
+			expect(settings.announcement.enabled).toBe(true);
+			expect(settings.announcement.text).toBe("Hello");
+			expect(settings.announcement.linkUrl).toBe("https://example.com");
+			expect(settings.announcement.linkText).toBe("Learn more");
+		});
+
+		it("returns default announcement when no row exists", async () => {
+			await updateSiteSettings({ name: "Test" });
+			const settings = await getSiteSettingsDirect();
+			expect(settings.announcement).toEqual({
+				enabled: false,
+				text: "",
+				linkUrl: "",
+				linkText: "",
+			});
 		});
 	});
 

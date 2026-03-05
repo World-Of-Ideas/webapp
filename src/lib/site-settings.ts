@@ -3,13 +3,14 @@ import { unstable_cache, revalidateTag } from "next/cache";
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { siteSettings } from "@/db/schema";
-import type { SiteSettings, ThemeSettings } from "@/types/site-settings";
+import type { SiteSettings, ThemeSettings, AnnouncementSettings } from "@/types/site-settings";
 
 const CACHE_TAG = "site-settings";
 
 const DEFAULT_SOCIAL = { twitter: "", github: "", discord: "", instagram: "" };
 const DEFAULT_PRODUCT_LINKS = { appUrl: "", appStoreUrl: "", playStoreUrl: "" };
-const DEFAULT_FEATURES: Record<string, boolean> = { waitlist: true, giveaway: true, blog: true, contact: true };
+const DEFAULT_FEATURES: Record<string, boolean> = { waitlist: true, giveaway: true, blog: true, contact: true, pricing: false, changelog: false };
+const DEFAULT_ANNOUNCEMENT: AnnouncementSettings = { enabled: false, text: "", linkUrl: "", linkText: "" };
 const DEFAULT_UI: Record<string, boolean> = { search: true, themeToggle: true };
 const DEFAULT_THEME: ThemeSettings = {
 	preset: "bold",
@@ -29,6 +30,7 @@ function parseJson<T extends object>(raw: string | null | undefined, fallback: T
 	try {
 		const parsed = JSON.parse(raw);
 		if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return fallback;
+		if (Object.prototype.hasOwnProperty.call(parsed, "__proto__")) return fallback;
 		return parsed as T;
 	} catch {
 		return fallback;
@@ -47,6 +49,7 @@ function rowToSettings(row: typeof siteSettings.$inferSelect | null | undefined)
 			ui: { ...DEFAULT_UI },
 			theme: { ...DEFAULT_THEME },
 			logoUrl: null,
+			announcement: { ...DEFAULT_ANNOUNCEMENT },
 		};
 	}
 
@@ -60,6 +63,7 @@ function rowToSettings(row: typeof siteSettings.$inferSelect | null | undefined)
 		ui: { ...DEFAULT_UI, ...parseJson(row.ui, DEFAULT_UI) },
 		theme: { ...DEFAULT_THEME, ...parseJson(row.theme, DEFAULT_THEME) },
 		logoUrl: row.logoUrl ?? null,
+		announcement: { ...DEFAULT_ANNOUNCEMENT, ...parseJson(row.announcement, DEFAULT_ANNOUNCEMENT) },
 	};
 }
 
@@ -101,6 +105,7 @@ export async function updateSiteSettings(data: {
 	ui?: Record<string, boolean>;
 	theme?: Partial<ThemeSettings>;
 	logoUrl?: string | null;
+	announcement?: Partial<AnnouncementSettings>;
 }) {
 	const db = await getDb();
 
@@ -117,6 +122,7 @@ export async function updateSiteSettings(data: {
 	if (data.ui !== undefined) updateSet.ui = JSON.stringify({ ...current.ui, ...data.ui });
 	if (data.theme !== undefined) updateSet.theme = JSON.stringify({ ...current.theme, ...data.theme });
 	if (data.logoUrl !== undefined) updateSet.logoUrl = data.logoUrl;
+	if (data.announcement !== undefined) updateSet.announcement = JSON.stringify({ ...current.announcement, ...data.announcement });
 
 	const [existing] = await db
 		.update(siteSettings)
@@ -136,6 +142,7 @@ export async function updateSiteSettings(data: {
 			ui: JSON.stringify(data.ui ?? DEFAULT_UI),
 			theme: JSON.stringify(data.theme ? { ...DEFAULT_THEME, ...data.theme } : DEFAULT_THEME),
 			logoUrl: data.logoUrl ?? null,
+			announcement: JSON.stringify(data.announcement ? { ...DEFAULT_ANNOUNCEMENT, ...data.announcement } : DEFAULT_ANNOUNCEMENT),
 			updatedAt: sql`datetime('now')`,
 		});
 	}

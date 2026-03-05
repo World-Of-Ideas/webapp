@@ -57,17 +57,24 @@ export default async function PostsPage() {
 									{post.slug}
 								</TableCell>
 								<TableCell>
-									<Badge
-										variant={
-											post.published
-												? "default"
-												: "secondary"
-										}
-									>
-										{post.published
-											? "Published"
-											: "Draft"}
-									</Badge>
+									<div className="flex gap-1">
+										<Badge
+											variant={
+												post.published
+													? "default"
+													: "secondary"
+											}
+										>
+											{post.published
+												? "Published"
+												: "Draft"}
+										</Badge>
+										{post.scheduledPublishAt && new Date(post.scheduledPublishAt + "Z") > new Date() && (
+											<Badge variant="outline">
+												Scheduled
+											</Badge>
+										)}
+									</div>
 								</TableCell>
 								<TableCell className="text-muted-foreground">
 									{post.publishedAt

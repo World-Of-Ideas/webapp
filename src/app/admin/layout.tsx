@@ -19,6 +19,7 @@ const sidebarLinks: AdminSidebarLink[] = [
 	{ label: "Subscribers", href: "/admin/subscribers", feature: "waitlist" },
 	{ label: "Giveaway", href: "/admin/giveaway", feature: "giveaway" },
 	{ label: "Tracking", href: "/admin/tracking" },
+	{ label: "Redirects", href: "/admin/redirects" },
 	{ label: "Settings", href: "/admin/settings" },
 	{ label: "SEO Audit", href: "/admin/seo" },
 ];

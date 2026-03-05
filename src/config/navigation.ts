@@ -19,7 +19,9 @@ export interface HeaderCtaButton {
 export const headerLinks: NavLink[] = [
 	{ label: "Waitlist", href: "/waitlist", feature: "waitlist" },
 	{ label: "Giveaway", href: "/giveaway", feature: "giveaway" },
+	{ label: "Pricing", href: "/pricing", feature: "pricing" },
 	{ label: "Blog", href: "/blog", feature: "blog" },
+	{ label: "Changelog", href: "/changelog", feature: "changelog" },
 	{ label: "Contact", href: "/contact", feature: "contact" },
 ];
 
@@ -34,12 +36,14 @@ export const footerGroups: FooterGroup[] = [
 		links: [
 			{ label: "Waitlist", href: "/waitlist", feature: "waitlist" },
 			{ label: "Giveaway", href: "/giveaway", feature: "giveaway" },
+			{ label: "Pricing", href: "/pricing", feature: "pricing" },
 		],
 	},
 	{
 		title: "Resources",
 		links: [
 			{ label: "Blog", href: "/blog", feature: "blog" },
+			{ label: "Changelog", href: "/changelog", feature: "changelog" },
 			{ label: "Contact", href: "/contact", feature: "contact" },
 		],
 	},
@@ -56,7 +60,9 @@ export const breadcrumbLabels: Record<string, string> = {
 	"": "Home",
 	waitlist: "Waitlist",
 	giveaway: "Giveaway",
+	pricing: "Pricing",
 	blog: "Blog",
+	changelog: "Changelog",
 	contact: "Contact",
 	terms: "Terms of Use",
 	privacy: "Privacy Policy",

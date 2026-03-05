@@ -6,7 +6,8 @@ import { MobileNav } from "./mobile-nav";
 import { SearchTrigger } from "./search-trigger";
 import { ThemeToggle } from "./theme-toggle";
 import { NavLinks } from "./nav-links";
-import type { ThemeSettings } from "@/types/site-settings";
+import { AnnouncementBar } from "./announcement-bar";
+import type { ThemeSettings, AnnouncementSettings } from "@/types/site-settings";
 
 const headerVariantStyles: Record<ThemeSettings["headerVariant"], string> = {
 	solid: "bg-background border-b border-border",
@@ -14,7 +15,11 @@ const headerVariantStyles: Record<ThemeSettings["headerVariant"], string> = {
 	transparent: "bg-transparent border-b border-transparent",
 };
 
-export async function Header() {
+interface HeaderProps {
+	announcement?: AnnouncementSettings;
+}
+
+export async function Header({ announcement }: HeaderProps) {
 	const settings = await getSiteSettings();
 
 	const filteredLinks = headerLinks.filter(
@@ -26,44 +31,47 @@ export async function Header() {
 	);
 
 	return (
-		<header className={cn("fixed top-0 z-50 w-full", headerVariantStyles[settings.theme.headerVariant] ?? headerVariantStyles.blur)}>
-			<div className="mx-auto flex h-14 max-w-[1440px] items-center px-4">
-				<Link href="/" className="mr-3 text-lg font-semibold tracking-tight md:mr-6">
-					{settings.name}
-				</Link>
+		<div className="fixed top-0 z-50 w-full">
+			{announcement && <AnnouncementBar announcement={announcement} />}
+			<header className={cn("w-full", headerVariantStyles[settings.theme.headerVariant] ?? headerVariantStyles.blur)}>
+				<div className="mx-auto flex h-14 max-w-[1440px] items-center px-4">
+					<Link href="/" className="mr-3 text-lg font-semibold tracking-tight md:mr-6">
+						{settings.name}
+					</Link>
 
-				<nav aria-label="Main navigation" className="hidden flex-1 justify-center md:flex">
-					<NavLinks links={filteredLinks} />
-				</nav>
+					<nav aria-label="Main navigation" className="hidden flex-1 justify-center md:flex">
+						<NavLinks links={filteredLinks} />
+					</nav>
 
-				<div className="ml-auto flex items-center gap-1 md:ml-0">
-					{settings.ui.search && <SearchTrigger />}
-					{settings.ui.themeToggle && <ThemeToggle />}
+					<div className="ml-auto flex items-center gap-1 md:ml-0">
+						{settings.ui.search && <SearchTrigger />}
+						{settings.ui.themeToggle && <ThemeToggle />}
 
-					<div className="hidden items-center gap-2 md:flex">
-						{filteredCtas.map((cta) => (
-							<Link
-								key={cta.href}
-								href={cta.href}
-								className={
-									cta.variant === "primary"
-										? "rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-										: "rounded-full border border-border px-4 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-								}
-							>
-								{cta.label}
-							</Link>
-						))}
+						<div className="hidden items-center gap-2 md:flex">
+							{filteredCtas.map((cta) => (
+								<Link
+									key={cta.href}
+									href={cta.href}
+									className={
+										cta.variant === "primary"
+											? "rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+											: "rounded-full border border-border px-4 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+									}
+								>
+									{cta.label}
+								</Link>
+							))}
+						</div>
+
+						<MobileNav
+							links={filteredLinks}
+							ctaButtons={filteredCtas}
+							showSearch={settings.ui.search}
+							siteName={settings.name}
+						/>
 					</div>
-
-					<MobileNav
-						links={filteredLinks}
-						ctaButtons={filteredCtas}
-						showSearch={settings.ui.search}
-						siteName={settings.name}
-					/>
 				</div>
-			</div>
-		</header>
+			</header>
+		</div>
 	);
 }

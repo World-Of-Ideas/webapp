@@ -6,7 +6,12 @@ import { getSiteSettingsDirect } from "@/lib/site-settings";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const baseUrl = siteConfig.url;
-	const settings = await getSiteSettingsDirect();
+
+	const [settings, contentPages] = await Promise.all([
+		getSiteSettingsDirect(),
+		getPublishedContentPages(),
+	]);
+
 	const entries: MetadataRoute.Sitemap = [];
 
 	// Home page — always included
@@ -54,6 +59,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		});
 	}
 
+	if (settings.features.pricing) {
+		entries.push({
+			url: `${baseUrl}/pricing`,
+			lastModified: new Date(),
+			changeFrequency: "monthly",
+			priority: 0.8,
+		});
+	}
+
+	if (settings.features.changelog) {
+		entries.push({
+			url: `${baseUrl}/changelog`,
+			lastModified: new Date(),
+			changeFrequency: "weekly",
+			priority: 0.6,
+		});
+	}
+
 	// Terms and Privacy — always included
 	entries.push({
 		url: `${baseUrl}/terms`,
@@ -71,8 +94,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
 	// Published blog posts
 	if (settings.features.blog) {
-		// Fetch all published posts (large limit to get everything)
-		const { items: posts } = await getPublishedPosts(1, 10000);
+		const { items: posts } = await getPublishedPosts(1, 1000);
 		for (const post of posts) {
 			entries.push({
 				url: `${baseUrl}/blog/${post.slug}`,
@@ -84,7 +106,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	}
 
 	// Published content pages (exclude system pages — they have dedicated routes above)
-	const contentPages = await getPublishedContentPages();
 	for (const page of contentPages) {
 		if (isSystemPage(page.slug)) continue;
 		if ((page.metadata as Record<string, unknown> | null)?.noindex) continue;

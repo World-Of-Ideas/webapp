@@ -21,13 +21,9 @@ export async function GET(request: NextRequest) {
 	const secret = (env as unknown as Record<string, unknown>).UNSUBSCRIBE_SECRET as string;
 
 	const valid = await verifyUnsubscribeToken(email, token, secret);
-	if (!valid) {
-		return apiError("VALIDATION_ERROR", "Invalid unsubscribe token");
-	}
-
-	const subscriber = await getSubscriberByEmail(email);
-	if (!subscriber) {
-		return apiError("NOT_FOUND", "Subscriber not found");
+	const subscriber = valid ? await getSubscriberByEmail(email) : null;
+	if (!valid || !subscriber) {
+		return apiError("VALIDATION_ERROR", "Invalid unsubscribe request");
 	}
 
 	await unsubscribe(email);
