@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { getSiteSettings } from "@/lib/site-settings";
 import { getGiveawayEntries, getGiveawayStats } from "@/lib/giveaway";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -15,6 +17,9 @@ export const metadata: Metadata = {
 };
 
 export default async function GiveawayPage() {
+	const settings = await getSiteSettings();
+	if (!settings.features.giveaway) notFound();
+
 	const [{ items: entries, total }, stats] = await Promise.all([
 		getGiveawayEntries(1, 50),
 		getGiveawayStats(),

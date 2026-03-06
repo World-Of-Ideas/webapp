@@ -8,7 +8,7 @@ function nthBlock(page: import("@playwright/test").Page, n: number) {
 // Helper: add a block via the dropdown menu
 async function addBlock(page: import("@playwright/test").Page, type: string) {
 	await page.getByRole("button", { name: "Add Block" }).click();
-	await page.getByRole("menuitem", { name: type }).click();
+	await page.getByRole("menuitem", { name: type, exact: true }).click();
 	// Wait briefly for the block to render
 	await page.waitForTimeout(200);
 }

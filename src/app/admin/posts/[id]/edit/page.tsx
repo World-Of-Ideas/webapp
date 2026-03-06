@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { posts } from "@/db/schema";
+import { getSiteSettings } from "@/lib/site-settings";
 import { PostEditor } from "@/components/admin/post-editor/post-editor";
 
 export const metadata: Metadata = {
@@ -14,6 +15,9 @@ export default async function EditPostPage({
 }: {
 	params: Promise<{ id: string }>;
 }) {
+	const settings = await getSiteSettings();
+	if (!settings.features.blog) notFound();
+
 	const { id } = await params;
 	const postId = parseInt(id, 10);
 

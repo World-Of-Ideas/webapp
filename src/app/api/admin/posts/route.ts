@@ -1,12 +1,16 @@
 import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { getSiteSettingsDirect } from "@/lib/site-settings";
 import { getAllPosts, createPost } from "@/lib/blog";
 import { validatePostBody } from "@/lib/validation";
 
 export async function GET() {
 	if (!(await requireAdminSession())) {
 		return apiError("UNAUTHORIZED", "Not authenticated");
+	}
+	if (!(await getSiteSettingsDirect()).features.blog) {
+		return apiError("NOT_FOUND", "Blog feature is not enabled");
 	}
 
 	const posts = await getAllPosts();
@@ -16,6 +20,9 @@ export async function GET() {
 export async function POST(request: NextRequest) {
 	if (!(await requireAdminSession())) {
 		return apiError("UNAUTHORIZED", "Not authenticated");
+	}
+	if (!(await getSiteSettingsDirect()).features.blog) {
+		return apiError("NOT_FOUND", "Blog feature is not enabled");
 	}
 
 	try {

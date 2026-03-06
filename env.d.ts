@@ -23,6 +23,7 @@ declare namespace Cloudflare {
 		ADMIN_PASSWORD: string;
 		TURNSTILE_SECRET_KEY: string;
 		UNSUBSCRIBE_SECRET: string;
+		API_KEY?: string;
 	}
 }
 interface CloudflareEnv extends Cloudflare.Env {}

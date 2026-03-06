@@ -1,63 +1,86 @@
-# Next.js Framework Starter
+# Webapp — Next.js Marketing Site Template
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/next-starter-template)
+A full-featured marketing site template built with **Next.js 16** and deployed on **Cloudflare Workers** via OpenNext. Includes waitlist, giveaway, blog, contact forms, content pages, pricing, changelog, admin panel, and theme system — all config-driven from a single DB table.
 
-<!-- dash-content-start -->
+## Features
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). It's deployed on Cloudflare Workers as a [static website](https://developers.cloudflare.com/workers/static-assets/).
+- **Waitlist** with referral tracking and position queuing
+- **Giveaway** with bonus entry actions
+- **Blog** with 28 content block types, scheduling, and tagging
+- **Contact form** with async email via Cloudflare Queues + Resend
+- **Content pages** with pillar/subpage hierarchy and catch-all routing
+- **Pricing** and **Changelog** pages (data-driven from admin)
+- **Admin panel** with post editor, page editor, subscriber management, settings, SEO audit
+- **Theme system** with accent color, 4 fonts, component variants, and 4 presets
+- **Feature toggles** — enable/disable any feature from admin (waitlist, giveaway, blog, contact, pricing, changelog, api)
+- **External API** with Bearer token auth for programmatic blog management
+- **Bot protection** via Cloudflare Turnstile on all public forms and admin login
+- **SEO** with metadata, JSON-LD, breadcrumbs, FAQs, sitemap, RSS feed, OG images
+- **Search** (Cmd+K) across posts and content pages
+- **Tracking** with Facebook Pixel + CAPI, Google Analytics 4 + Measurement Protocol
+- **Multi-environment** — UAT (main branch) and Production (release branch)
 
-This template uses [OpenNext](https://opennext.js.org/) via the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare), which works by taking the Next.js build output and transforming it, so that it can run in Cloudflare Workers.
+## Tech Stack
 
-<!-- dash-content-end -->
-
-Outside of this repo, you can start a new project with this template using [C3](https://developers.cloudflare.com/pages/get-started/c3/) (the `create-cloudflare` CLI):
-
-```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/next-starter-template
-```
-
-A live public deployment of this template is available at [https://next-starter-template.templates.workers.dev](https://next-starter-template.templates.workers.dev)
+- Next.js 16, React 19, TypeScript, Tailwind CSS v4
+- Cloudflare Workers, D1 (SQLite), R2, Queues
+- Drizzle ORM, OpenNext, shadcn/ui
+- Playwright (E2E), Vitest (unit/integration)
 
 ## Getting Started
 
-First, run:
-
 ```bash
+# Install dependencies
 npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
-```
 
-Then run the development server (using the package manager of your choice):
+# Copy env file and configure
+cp .env.example .dev.vars
 
-```bash
+# Create local D1 database and seed data
+make db-recreate
+
+# Start dev server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Admin panel at [http://localhost:3000/admin](http://localhost:3000/admin) (password: `admin123`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```
+src/
+├── app/(public)/       # Public pages (blog, waitlist, contact, etc.)
+├── app/admin/          # Admin panel pages
+├── app/api/            # API routes (public + admin)
+├── components/         # UI, layout, content blocks, admin, shared
+├── config/             # Navigation, theme presets, site config
+├── db/                 # Schema, seed data
+├── features/           # Product-specific features (template-safe)
+├── lib/                # Business logic (27 files)
+└── types/              # TypeScript interfaces
+docs/
+├── plan.md             # Implementation plan
+├── audit/              # Security audit reports (rounds 3-6)
+├── decisions/          # Architecture decision records
+└── checklists/         # Clone, deploy, new feature, new page
+```
 
-## Deploying To Production
+## Key Commands
 
-| Command                           | Action                                       |
-| :-------------------------------- | :------------------------------------------- |
-| `npm run build`                   | Build your production site                   |
-| `npm run preview`                 | Preview your build locally, before deploying |
-| `npm run build && npm run deploy` | Deploy your production site to Cloudflare    |
-| `npm wrangler tail`               | View real-time logs for all Workers          |
+| Command | Action |
+|:--------|:-------|
+| `make dev` | Start dev server |
+| `make test` | Run unit/integration tests |
+| `make e2e` | Run E2E tests |
+| `make ci` | Lint + typecheck + test |
+| `make db-recreate` | Drop and recreate local D1 with seed data |
+| `make deploy-uat` | Deploy to UAT environment |
+| `make deploy-prod` | Deploy to production |
 
-## Learn More
+## Documentation
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- `CLAUDE.md` — Architecture rules and development instructions
+- `docs/plan.md` — Original implementation plan
+- `docs/audit/` — Security audit reports
+- `docs/decisions/` — Architecture decision records (queues, ORM, releases, Terraform)
+- `docs/checklists/` — Operational checklists (clone template, deploy, add feature, add page)

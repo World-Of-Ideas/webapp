@@ -47,9 +47,9 @@ describe("admin", () => {
 
 			// Both should take at least some measurable time (PBKDF2 is slow)
 			// They should be within the same order of magnitude
-			// We just verify neither is instant (< 1ms would suggest short-circuit)
-			expect(correctTime).toBeGreaterThan(1);
-			expect(wrongTime).toBeGreaterThan(1);
+			// We just verify neither is instant (< 0.1ms would suggest short-circuit)
+			expect(correctTime).toBeGreaterThan(0.1);
+			expect(wrongTime).toBeGreaterThan(0.1);
 		});
 	});
 

@@ -17,20 +17,21 @@ Use this checklist when cloning the webapp template for a new product launch sit
 - [ ] Create `envs/uat.tfvars` and `envs/prod.tfvars` with actual values
 - [ ] Run `terraform init && terraform apply` for both workspaces
 
-## 3. Update Site Config (`src/config/site.ts`)
+## 3. Update Site Config
 
+`src/config/site.ts` is minimal — only `url` (from env) and `turnstileSiteKey` (from env). Everything else is DB-driven via Admin > Settings.
+
+- [ ] Set `NEXT_PUBLIC_SITE_URL` env var for production URL
+- [ ] Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` env var for production Turnstile widget key
+
+After deploying and seeding, configure via **Admin > Settings**:
 - [ ] `name` — product name
 - [ ] `description` — one-line value proposition
-- [ ] `url` — production URL (e.g. `https://www.newproduct.com`)
-- [ ] `productLinks.appUrl` — web app URL (if applicable, e.g. `https://app.newproduct.com`)
-- [ ] `productLinks.appStoreUrl` — iOS App Store URL (if applicable)
-- [ ] `productLinks.playStoreUrl` — Google Play Store URL (if applicable)
-- [ ] `social.twitter` — product's Twitter handle
-- [ ] `social.github` — product's GitHub (if applicable)
-- [ ] `social.discord` — product's Discord (if applicable)
-- [ ] `social.instagram` — product's Instagram (if applicable)
-- [ ] `turnstileSiteKey` — new Turnstile widget site key from Cloudflare dashboard
-- [ ] `features` — enable/disable waitlist, giveaway, blog, contact as needed
+- [ ] `author` — company name
+- [ ] `productLinks` — appUrl, appStoreUrl, playStoreUrl (as applicable)
+- [ ] `social` — twitter, github, discord, instagram (as applicable)
+- [ ] `features` — enable/disable waitlist, giveaway, blog, contact, pricing, changelog, api
+- [ ] `theme` — accent color, font, component variants, or select a preset
 
 ## 4. Update Navigation Config (`src/config/navigation.ts`)
 
@@ -65,6 +66,9 @@ wrangler secret put FROM_EMAIL --env uat         # hello@newproduct.com
 wrangler secret put CONTACT_EMAIL --env uat      # support@newproduct.com
 wrangler secret put ADMIN_PASSWORD --env uat
 wrangler secret put TURNSTILE_SECRET_KEY --env uat
+wrangler secret put UNSUBSCRIBE_SECRET --env uat
+# Optional: for external blog API access
+wrangler secret put API_KEY --env uat
 ```
 
 ## 8. Create Cloudflare Queues
@@ -105,5 +109,5 @@ When cloning, do a global search for these strings and replace:
 | Search for | Replace with | Files affected |
 | ---------- | ------------ | -------------- |
 | `webapp` (in resource names) | `{product}` | `wrangler.jsonc` |
-| `Product Name` | Actual product name | `config/site.ts`, `seed.ts` |
-| `example.com` | Actual domain | `config/site.ts` (note: most domain refs come from `SITE_URL` secret at runtime, but config has the default) |
+| `Product Name` | Actual product name | `seed.sql` (then configure via Admin > Settings) |
+| `example.com` | Actual domain | `SITE_URL` wrangler secret (runtime, not in code) |

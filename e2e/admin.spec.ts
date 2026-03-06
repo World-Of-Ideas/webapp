@@ -18,6 +18,8 @@ test.describe("Admin login", () => {
 	test("rejects wrong password", async ({ page }) => {
 		await page.goto("/admin");
 		await page.getByPlaceholder("Enter admin password").fill("wrong");
+		// Wait for Turnstile to auto-resolve (always-pass test key)
+		await expect(page.getByRole("button", { name: "Sign In" })).toBeEnabled({ timeout: 10_000 });
 		await page.getByRole("button", { name: "Sign In" }).click();
 		await expect(page.getByText("Invalid password")).toBeVisible();
 	});
@@ -25,6 +27,8 @@ test.describe("Admin login", () => {
 	test("logs in and shows dashboard", async ({ page }) => {
 		await page.goto("/admin");
 		await page.getByPlaceholder("Enter admin password").fill("admin123");
+		// Wait for Turnstile to auto-resolve (always-pass test key)
+		await expect(page.getByRole("button", { name: "Sign In" })).toBeEnabled({ timeout: 10_000 });
 		await page.getByRole("button", { name: "Sign In" }).click();
 		await page.waitForURL("**/admin/dashboard", { timeout: 10_000 });
 		await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();

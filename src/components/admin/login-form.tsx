@@ -5,23 +5,31 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Turnstile } from "@/components/shared/turnstile";
 
 export function LoginForm() {
 	const router = useRouter();
 	const [password, setPassword] = useState("");
+	const [turnstileToken, setTurnstileToken] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState("");
 
 	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault();
 		setError("");
+
+		if (!turnstileToken) {
+			setError("Please complete the verification.");
+			return;
+		}
+
 		setIsSubmitting(true);
 
 		try {
 			const res = await fetch("/api/admin/login", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ password }),
+				body: JSON.stringify({ password, turnstileToken }),
 			});
 
 			const data = (await res.json()) as { error?: { code: string; message: string } };
@@ -55,11 +63,13 @@ export function LoginForm() {
 				/>
 			</div>
 
+			<Turnstile onSuccess={setTurnstileToken} />
+
 			{error && (
 				<p className="text-sm text-destructive" role="alert">{error}</p>
 			)}
 
-			<Button type="submit" className="w-full" disabled={isSubmitting}>
+			<Button type="submit" className="w-full" disabled={isSubmitting || !turnstileToken}>
 				{isSubmitting ? "Signing in..." : "Sign In"}
 			</Button>
 		</form>

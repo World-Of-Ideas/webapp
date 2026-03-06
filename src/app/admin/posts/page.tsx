@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAllPosts } from "@/lib/blog";
+import { getSiteSettings } from "@/lib/site-settings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +19,9 @@ export const metadata: Metadata = {
 };
 
 export default async function PostsPage() {
+	const settings = await getSiteSettings();
+	if (!settings.features.blog) notFound();
+
 	const posts = await getAllPosts();
 
 	return (

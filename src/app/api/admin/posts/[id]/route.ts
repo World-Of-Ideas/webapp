@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { getSiteSettingsDirect } from "@/lib/site-settings";
 import { updatePost, deletePost } from "@/lib/blog";
 import { validatePostUpdateBody } from "@/lib/validation";
 
@@ -10,6 +11,9 @@ export async function PUT(
 ) {
 	if (!(await requireAdminSession())) {
 		return apiError("UNAUTHORIZED", "Not authenticated");
+	}
+	if (!(await getSiteSettingsDirect()).features.blog) {
+		return apiError("NOT_FOUND", "Blog feature is not enabled");
 	}
 
 	try {
@@ -39,6 +43,9 @@ export async function DELETE(
 ) {
 	if (!(await requireAdminSession())) {
 		return apiError("UNAUTHORIZED", "Not authenticated");
+	}
+	if (!(await getSiteSettingsDirect()).features.blog) {
+		return apiError("NOT_FOUND", "Blog feature is not enabled");
 	}
 
 	try {

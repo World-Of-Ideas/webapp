@@ -4,23 +4,33 @@ import { getEnv } from "@/db";
 import { apiSuccess, apiError, getClientIp } from "@/lib/api";
 import { createSession, cleanupExpiredSessions, verifyPassword } from "@/lib/admin";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function POST(request: NextRequest) {
 	try {
 		const ip = getClientIp(request);
-		if (!checkRateLimit(`login:${ip}`, 20, 15 * 60 * 1000)) {
+		if (!checkRateLimit(`login:${ip}`, 3, 60 * 60 * 1000)) {
 			return apiError("RATE_LIMITED", "Too many login attempts. Try again later.");
 		}
 
 		let body;
 		try { body = await request.json(); } catch { return apiError("VALIDATION_ERROR", "Invalid JSON"); }
-		const { password } = body as { password?: string };
+		const { password, turnstileToken } = body as { password?: string; turnstileToken?: string };
 
 		if (!password || typeof password !== "string" || password.length > 1000) {
 			return apiError("VALIDATION_ERROR", "Invalid credentials");
 		}
 
+		if (!turnstileToken || typeof turnstileToken !== "string") {
+			return apiError("VALIDATION_ERROR", "Verification required");
+		}
+
 		const env = await getEnv();
+
+		const turnstileValid = await verifyTurnstileToken(turnstileToken, env.TURNSTILE_SECRET_KEY);
+		if (!turnstileValid) {
+			return apiError("TURNSTILE_FAILED", "Verification failed. Please try again.");
+		}
 
 		const adminPw = env.ADMIN_PASSWORD;
 		if (!adminPw || typeof adminPw !== "string") {
