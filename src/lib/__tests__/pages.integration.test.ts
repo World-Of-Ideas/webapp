@@ -53,7 +53,7 @@ describe("pages (integration)", () => {
 		});
 
 		it("stores content, FAQs, and metadata", async () => {
-			const page = await createPage({
+			await createPage({
 				slug: "faq-page",
 				title: "FAQ",
 				content: [{ type: "paragraph", text: "Hello" }],

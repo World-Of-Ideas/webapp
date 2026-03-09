@@ -12,11 +12,15 @@ export function BannerBlock({ block }: BannerBlockProps) {
 
 	const baseClasses = "not-prose my-6 rounded-lg px-6 py-8 text-center sm:px-8 sm:py-10";
 
-	if (variant === "image" && block.bannerBackground && isSafeUrl(block.bannerBackground) && !/[)"']/.test(block.bannerBackground)) {
+	// CSS url() injection: only allow https:// or relative / URLs (no data:, javascript:, or quote-breaking chars)
+	const bgUrl = block.bannerBackground?.trim() ?? "";
+	const safeBg = bgUrl.startsWith("https://") || bgUrl.startsWith("/");
+
+	if (variant === "image" && bgUrl && safeBg && !/[)"'\\]/.test(bgUrl)) {
 		return (
 			<div
 				className={cn(baseClasses, "relative overflow-hidden bg-cover bg-center")}
-				style={{ backgroundImage: `url("${block.bannerBackground}")` }}
+				style={{ backgroundImage: `url("${bgUrl}")` }}
 			>
 				<div className="absolute inset-0 bg-black/60" aria-hidden="true" />
 				<div className="relative">

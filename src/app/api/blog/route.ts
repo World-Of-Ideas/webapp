@@ -1,13 +1,19 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError, clampInt } from "@/lib/api";
+import { apiSuccess, apiError, clampInt, getClientIp } from "@/lib/api";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
 import { getPublishedPosts, createPost } from "@/lib/blog";
 import { requireApiKey } from "@/lib/api-auth";
 import { validatePostBody } from "@/lib/validation";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
 	if (!(await getSiteSettingsDirect()).features.blog) {
 		return apiError("NOT_FOUND", "Blog is not available");
+	}
+
+	const ip = getClientIp(request);
+	if (!checkRateLimit(`blog-list:${ip}`, 60, 60_000)) {
+		return apiError("RATE_LIMITED", "Too many requests");
 	}
 
 	const page = clampInt(request.nextUrl.searchParams.get("page"), 1, 1, 10000);

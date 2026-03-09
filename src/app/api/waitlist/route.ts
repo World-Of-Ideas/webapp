@@ -4,7 +4,7 @@ import { apiSuccess, apiError, getClientIp } from "@/lib/api";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { generateReferralCode } from "@/lib/referral";
-import { createSubscriber, getSubscriberByEmail, incrementReferralCount, createSubscriberWithReferral } from "@/lib/waitlist";
+import { createSubscriber, getSubscriberByEmail, createSubscriberWithReferral } from "@/lib/waitlist";
 import { enqueueEmail } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendMetaConversionEvent, sendGaConversionEvent } from "@/lib/tracking";

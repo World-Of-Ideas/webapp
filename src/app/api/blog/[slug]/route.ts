@@ -1,16 +1,22 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/api";
+import { apiSuccess, apiError, getClientIp } from "@/lib/api";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
 import { getPublishedPostBySlug, getPostBySlug, updatePost, deletePost } from "@/lib/blog";
 import { requireApiKey } from "@/lib/api-auth";
 import { validatePostUpdateBody } from "@/lib/validation";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function GET(
-	_request: NextRequest,
+	request: NextRequest,
 	{ params }: { params: Promise<{ slug: string }> },
 ) {
 	if (!(await getSiteSettingsDirect()).features.blog) {
 		return apiError("NOT_FOUND", "Blog is not available");
+	}
+
+	const ip = getClientIp(request);
+	if (!checkRateLimit(`blog-detail:${ip}`, 60, 60_000)) {
+		return apiError("RATE_LIMITED", "Too many requests");
 	}
 
 	const { slug } = await params;

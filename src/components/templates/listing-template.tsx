@@ -21,11 +21,11 @@ interface ListingTemplateProps {
 	title: string;
 	description: string | null;
 	content: ContentBlock[] | null;
-	children: ChildPage[];
+	childPages: ChildPage[];
 	cardVariant?: ThemeSettings["postCardVariant"];
 }
 
-export function ListingTemplate({ title, description, content, children, cardVariant = "bordered" }: ListingTemplateProps) {
+export function ListingTemplate({ title, description, content, childPages, cardVariant = "bordered" }: ListingTemplateProps) {
 	return (
 		<div className="mx-auto max-w-[1128px] px-4 py-12 sm:px-6 sm:py-16">
 			<h1 className="text-3xl font-normal tracking-tight sm:text-4xl md:text-5xl">
@@ -44,9 +44,9 @@ export function ListingTemplate({ title, description, content, children, cardVar
 				</div>
 			)}
 
-			{children.length > 0 && (
+			{childPages.length > 0 && (
 				<div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-					{children.map((child) => (
+					{childPages.map((child) => (
 						<Link
 							key={child.slug}
 							href={`/${child.slug}`}

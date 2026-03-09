@@ -1,4 +1,4 @@
-import { eq, desc, sql, count, and, ne, or, isNull, lte } from "drizzle-orm";
+import { eq, desc, sql, count, and, or, isNull, lte } from "drizzle-orm";
 import { getDb } from "@/db";
 import { posts } from "@/db/schema";
 

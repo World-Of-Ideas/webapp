@@ -30,6 +30,40 @@ interface PostEditorProps {
 	post?: PostData;
 }
 
+function validatePostJson(json: string): { data: PostData | null; error: string | null } {
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(json);
+	} catch {
+		return { data: null, error: "Invalid JSON syntax." };
+	}
+	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+		return { data: null, error: "JSON must be an object." };
+	}
+	const p = parsed as Record<string, unknown>;
+	if (typeof p.title !== "string" || !p.title) return { data: null, error: "\"title\" (string) is required." };
+	if (typeof p.slug !== "string" || !p.slug) return { data: null, error: "\"slug\" (string) is required." };
+	if (typeof p.description !== "string" || !p.description) return { data: null, error: "\"description\" (string) is required." };
+	if (p.content !== undefined && !Array.isArray(p.content)) return { data: null, error: "\"content\" must be an array." };
+	if (p.faqs !== undefined && p.faqs !== null && !Array.isArray(p.faqs)) return { data: null, error: "\"faqs\" must be an array or null." };
+	if (p.tags !== undefined && p.tags !== null && !Array.isArray(p.tags)) return { data: null, error: "\"tags\" must be an array or null." };
+	return {
+		data: {
+			slug: p.slug as string,
+			title: p.title as string,
+			description: p.description as string,
+			content: (p.content as ContentBlock[]) ?? [],
+			faqs: (p.faqs as FAQ[] | null) ?? null,
+			coverImage: (typeof p.coverImage === "string" ? p.coverImage : null),
+			author: (typeof p.author === "string" ? p.author : "Admin"),
+			tags: (p.tags as string[] | null) ?? null,
+			published: typeof p.published === "boolean" ? p.published : false,
+			scheduledPublishAt: typeof p.scheduledPublishAt === "string" ? p.scheduledPublishAt : null,
+		},
+		error: null,
+	};
+}
+
 function generateSlug(title: string): string {
 	return title
 		.toLowerCase()
@@ -40,6 +74,10 @@ function generateSlug(title: string): string {
 export function PostEditor({ post }: PostEditorProps) {
 	const router = useRouter();
 	const isEditMode = !!post?.id;
+
+	const [jsonMode, setJsonMode] = useState(false);
+	const [jsonInput, setJsonInput] = useState("");
+	const [jsonError, setJsonError] = useState("");
 
 	const [title, setTitle] = useState(post?.title ?? "");
 	const [slug, setSlug] = useState(post?.slug ?? "");
@@ -61,6 +99,50 @@ export function PostEditor({ post }: PostEditorProps) {
 	const [faqs, setFaqs] = useState<FAQ[]>(post?.faqs ?? []);
 	const [isSaving, setIsSaving] = useState(false);
 	const [error, setError] = useState("");
+
+	function handleImportJson() {
+		setJsonError("");
+		const { data, error: parseError } = validatePostJson(jsonInput);
+		if (parseError || !data) {
+			setJsonError(parseError ?? "Invalid JSON");
+			return;
+		}
+		setTitle(data.title);
+		setSlug(data.slug);
+		setDescription(data.description);
+		setAuthor(data.author);
+		setTagsInput(data.tags?.join(", ") ?? "");
+		setCoverImage(data.coverImage ?? "");
+		setPublished(data.published);
+		setScheduledPublishAt(
+			data.scheduledPublishAt
+				? new Date(data.scheduledPublishAt).toISOString().slice(0, 16)
+				: "",
+		);
+		setContent(data.content);
+		setFaqs(data.faqs ?? []);
+		setJsonMode(false);
+		setJsonInput("");
+	}
+
+	function handleExportJson() {
+		const tags = tagsInput.split(",").map((t) => t.trim()).filter(Boolean);
+		const data = {
+			title,
+			slug,
+			description,
+			author,
+			tags: tags.length > 0 ? tags : null,
+			coverImage: coverImage || null,
+			published,
+			scheduledPublishAt: scheduledPublishAt
+				? new Date(scheduledPublishAt).toISOString()
+				: null,
+			content,
+			faqs: faqs.length > 0 ? faqs : null,
+		};
+		navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+	}
 
 	function handleTitleChange(value: string) {
 		setTitle(value);
@@ -121,8 +203,51 @@ export function PostEditor({ post }: PostEditorProps) {
 		}
 	}
 
+	if (jsonMode) {
+		return (
+			<div className="space-y-4">
+				<div className="flex items-center justify-between">
+					<p className="text-sm text-muted-foreground">
+						Paste a full post JSON object. Required fields: title, slug, description.
+					</p>
+					<Button type="button" variant="ghost" onClick={() => { setJsonMode(false); setJsonInput(""); setJsonError(""); }}>
+						Back to form
+					</Button>
+				</div>
+				<Textarea
+					value={jsonInput}
+					onChange={(e) => { setJsonInput(e.target.value); setJsonError(""); }}
+					placeholder={'{\n  "title": "My Post",\n  "slug": "my-post",\n  "description": "A brief description",\n  "author": "Admin",\n  "tags": ["tag1", "tag2"],\n  "published": false,\n  "content": [\n    {"type": "paragraph", "text": "Hello world"}\n  ]\n}'}
+					className="min-h-[400px] font-mono text-xs"
+				/>
+				{jsonError && (
+					<p className="text-sm text-destructive" role="alert">{jsonError}</p>
+				)}
+				<div className="flex gap-2">
+					<Button type="button" onClick={handleImportJson} disabled={!jsonInput.trim()}>
+						Load into editor
+					</Button>
+					<Button type="button" variant="outline" onClick={() => { setJsonMode(false); setJsonInput(""); setJsonError(""); }}>
+						Cancel
+					</Button>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<form onSubmit={handleSubmit} className="space-y-8">
+			<div className="flex gap-2 justify-end">
+				{!isEditMode && (
+					<Button type="button" variant="outline" size="sm" onClick={() => setJsonMode(true)}>
+						Import from JSON
+					</Button>
+				)}
+				<Button type="button" variant="outline" size="sm" onClick={handleExportJson}>
+					Export as JSON
+				</Button>
+			</div>
+
 			<div className="grid gap-6 md:grid-cols-2">
 				<div className="space-y-2">
 					<Label htmlFor="post-title">Title</Label>

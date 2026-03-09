@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { AnnouncementSettings } from "@/types/site-settings";
+import { isSafeUrl } from "@/lib/utils";
 
 interface AnnouncementBarProps {
 	announcement: AnnouncementSettings;
@@ -15,13 +16,13 @@ export function AnnouncementBar({ announcement }: AnnouncementBarProps) {
 	const [loaded, setLoaded] = useState(false);
 
 	useEffect(() => {
+		let isDismissed = false;
 		try {
-			if (sessionStorage.getItem(STORAGE_KEY) === announcement.text) {
-				setDismissed(true);
-			}
+			isDismissed = sessionStorage.getItem(STORAGE_KEY) === announcement.text;
 		} catch {
 			// sessionStorage may not be available
 		}
+		setDismissed(isDismissed);
 		setLoaded(true);
 	}, [announcement.text]);
 
@@ -40,7 +41,7 @@ export function AnnouncementBar({ announcement }: AnnouncementBarProps) {
 		<div className="relative bg-primary px-4 py-2 text-center text-sm text-primary-foreground">
 			<p className="mx-auto max-w-3xl">
 				{announcement.text}
-				{announcement.linkUrl && announcement.linkText && (
+				{announcement.linkUrl && announcement.linkText && isSafeUrl(announcement.linkUrl) && (
 					<>
 						{" "}
 						<Link href={announcement.linkUrl} className="font-medium underline underline-offset-2 hover:opacity-80">

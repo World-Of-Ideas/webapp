@@ -55,8 +55,8 @@ describe("seo", () => {
 					{ question: "Q2?", answer: "A2" },
 				],
 				relatedPages: [
-					{ slug: "/contact", title: "Contact" },
-				] as any,
+					{ title: "Contact", description: "Contact us", href: "/contact" },
+				],
 			});
 
 			const audit = await getSeoAudit();
@@ -103,7 +103,8 @@ describe("seo", () => {
 				slug: "my-post",
 				title: "My Blog Post Title",
 				description: "A great blog post about testing",
-				content: [{ type: "paragraph", text: "Hello" }] as any,
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			content: [{ type: "paragraph", text: "Hello" }] as any,
 				published: true,
 				coverImage: "https://example.com/blog/my-post/cover.webp",
 				faqs: [{ question: "What?", answer: "This." }],

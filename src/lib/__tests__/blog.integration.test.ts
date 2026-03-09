@@ -49,7 +49,7 @@ describe("blog (integration)", () => {
 		});
 
 		it("stores scheduledPublishAt", async () => {
-			const post = await createPost({
+			await createPost({
 				slug: "scheduled-post",
 				title: "Scheduled",
 				description: "Will publish later",

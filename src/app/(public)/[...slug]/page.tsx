@@ -95,7 +95,7 @@ export default async function CatchAllPage({
 						title={title}
 						description={description}
 						content={content}
-						children={children}
+						childPages={children}
 						cardVariant={cardVariant}
 					/>
 				);
@@ -105,7 +105,7 @@ export default async function CatchAllPage({
 						title={title}
 						description={description}
 						content={content}
-						children={children}
+						childPages={children}
 						cardVariant={cardVariant}
 					/>
 				);
@@ -115,7 +115,7 @@ export default async function CatchAllPage({
 						title={title}
 						description={description}
 						content={content}
-						children={children}
+						childPages={children}
 					/>
 				);
 		}

@@ -1,15 +1,21 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/api";
+import { apiSuccess, apiError, getClientIp } from "@/lib/api";
 import { getSubscriberByReferralCode } from "@/lib/waitlist";
 import { getPageBySlug } from "@/lib/pages";
 import { calculateEffectivePosition } from "@/lib/referral";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function GET(
-	_request: NextRequest,
+	request: NextRequest,
 	{ params }: { params: Promise<{ code: string }> },
 ) {
 	const { code } = await params;
+
+	const ip = getClientIp(request);
+	if (!checkRateLimit(`waitlist-code:${ip}`, 30, 60_000)) {
+		return apiError("RATE_LIMITED", "Too many requests");
+	}
 
 	const settings = await getSiteSettingsDirect();
 	if (!settings.features.waitlist) {

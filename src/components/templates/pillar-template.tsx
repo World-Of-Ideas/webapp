@@ -21,11 +21,11 @@ interface PillarTemplateProps {
 	title: string;
 	description: string | null;
 	content: ContentBlock[] | null;
-	children: ChildPage[];
+	childPages: ChildPage[];
 	cardVariant?: ThemeSettings["postCardVariant"];
 }
 
-export function PillarTemplate({ title, description, content, children, cardVariant = "bordered" }: PillarTemplateProps) {
+export function PillarTemplate({ title, description, content, childPages, cardVariant = "bordered" }: PillarTemplateProps) {
 	return (
 		<div className="mx-auto max-w-[1128px] px-4 py-12 sm:px-6 sm:py-16">
 			<div className="max-w-3xl">
@@ -50,11 +50,11 @@ export function PillarTemplate({ title, description, content, children, cardVari
 					)}
 
 					{/* Child pages grid */}
-					{children.length > 0 && (
+					{childPages.length > 0 && (
 						<div className="mt-12">
 							<h2 className="text-2xl font-normal tracking-tight">In This Section</h2>
 							<div className="mt-6 grid gap-6 sm:grid-cols-2">
-								{children.map((child) => (
+								{childPages.map((child) => (
 									<Link
 										key={child.slug}
 										href={`/${child.slug}`}
@@ -80,12 +80,12 @@ export function PillarTemplate({ title, description, content, children, cardVari
 				</div>
 
 				{/* Sidebar TOC */}
-				{children.length > 0 && (
+				{childPages.length > 0 && (
 					<aside className="hidden lg:block">
 						<div className="sticky top-20">
 							<h3 className="text-sm font-semibold text-muted-foreground">Contents</h3>
 							<nav className="mt-3 space-y-2" aria-label="Table of contents">
-								{children.map((child) => (
+								{childPages.map((child) => (
 									<Link
 										key={child.slug}
 										href={`/${child.slug}`}

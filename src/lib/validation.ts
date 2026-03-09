@@ -6,10 +6,6 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SLUG_REGEX = /^[a-z0-9]+(?:[/-][a-z0-9]+)*$/;
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
 const TWITTER_HANDLE_REGEX = /^@?[a-zA-Z0-9_]{1,15}$/;
-const PIXEL_ID_REGEX = /^\d+$/;
-const GA_MEASUREMENT_ID_REGEX = /^G-[A-Z0-9]+$/;
-const GTM_CONTAINER_ID_REGEX = /^GTM-[A-Z0-9]+$/;
-
 export function isValidEmail(email: string): boolean {
 	return EMAIL_REGEX.test(email) && email.length <= 254;
 }

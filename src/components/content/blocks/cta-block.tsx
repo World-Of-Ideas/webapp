@@ -1,6 +1,7 @@
 import type { ContentBlock } from "@/types/content";
 import Link from "next/link";
 import { getSiteSettings } from "@/lib/site-settings";
+import { isSafeUrl } from "@/lib/utils";
 
 interface CtaBlockProps {
 	block: ContentBlock;
@@ -32,17 +33,17 @@ export async function CtaBlock({ block }: CtaBlockProps) {
 		<div className="my-6 rounded-lg gradient-purple p-4 text-center sm:my-8 sm:p-6">
 			<p className="mb-4 text-base font-medium text-white sm:text-lg">{text}</p>
 			<div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-				{appUrl && (
+				{appUrl && isSafeUrl(appUrl) && (
 					<a href={appUrl} target="_blank" rel="noopener noreferrer" className="inline-block rounded-full bg-white px-6 py-2.5 text-sm font-medium text-black hover:bg-white/90">
 						Try {settings.name}
 					</a>
 				)}
-				{appStoreUrl && (
+				{appStoreUrl && isSafeUrl(appStoreUrl) && (
 					<a href={appStoreUrl} target="_blank" rel="noopener noreferrer" className="inline-block rounded-full bg-white px-6 py-2.5 text-sm font-medium text-black hover:bg-white/90">
 						App Store
 					</a>
 				)}
-				{playStoreUrl && (
+				{playStoreUrl && isSafeUrl(playStoreUrl) && (
 					<a href={playStoreUrl} target="_blank" rel="noopener noreferrer" className="inline-block rounded-full bg-white px-6 py-2.5 text-sm font-medium text-black hover:bg-white/90">
 						Google Play
 					</a>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { ContentBlock, ContentBlockType } from "@/types/content";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,16 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { BlockEditor } from "./block-editor";
 
 interface BlockListProps {
@@ -108,7 +119,44 @@ function getDefaultBlock(type: ContentBlockType): ContentBlock {
 	}
 }
 
+const VALID_BLOCK_TYPES = new Set<string>(BLOCK_TYPES.map((bt) => bt.type));
+
+function validateBlocksJson(json: string): { blocks: ContentBlock[]; error: string | null } {
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(json);
+	} catch {
+		return { blocks: [], error: "Invalid JSON. Please check the syntax." };
+	}
+	if (!Array.isArray(parsed)) {
+		return { blocks: [], error: "JSON must be an array of content blocks." };
+	}
+	if (parsed.length === 0) {
+		return { blocks: [], error: "Array is empty. Add at least one block." };
+	}
+	if (parsed.length > 200) {
+		return { blocks: [], error: "Too many blocks (max 200)." };
+	}
+	for (let i = 0; i < parsed.length; i++) {
+		const item = parsed[i];
+		if (!item || typeof item !== "object" || Array.isArray(item)) {
+			return { blocks: [], error: `Item ${i + 1} is not a valid object.` };
+		}
+		const block = item as Record<string, unknown>;
+		if (typeof block.type !== "string" || !VALID_BLOCK_TYPES.has(block.type)) {
+			return { blocks: [], error: `Item ${i + 1} has invalid type "${String(block.type)}". Valid types: ${[...VALID_BLOCK_TYPES].join(", ")}` };
+		}
+	}
+	return { blocks: parsed as ContentBlock[], error: null };
+}
+
 export function BlockList({ blocks, onChange }: BlockListProps) {
+	const [importOpen, setImportOpen] = useState(false);
+	const [importJson, setImportJson] = useState("");
+	const [importError, setImportError] = useState("");
+	const [importMode, setImportMode] = useState<"replace" | "append">("replace");
+	const [copyFeedback, setCopyFeedback] = useState(false);
+
 	function updateBlock(index: number, block: ContentBlock) {
 		const updated = [...blocks];
 		updated[index] = block;
@@ -130,6 +178,30 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
 
 	function addBlock(type: ContentBlockType) {
 		onChange([...blocks, getDefaultBlock(type)]);
+	}
+
+	function handleExport() {
+		const json = JSON.stringify(blocks, null, 2);
+		navigator.clipboard.writeText(json).then(() => {
+			setCopyFeedback(true);
+			setTimeout(() => setCopyFeedback(false), 2000);
+		});
+	}
+
+	function handleImport() {
+		setImportError("");
+		const { blocks: parsed, error } = validateBlocksJson(importJson);
+		if (error) {
+			setImportError(error);
+			return;
+		}
+		if (importMode === "append") {
+			onChange([...blocks, ...parsed]);
+		} else {
+			onChange(parsed);
+		}
+		setImportJson("");
+		setImportOpen(false);
 	}
 
 	return (
@@ -180,23 +252,82 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
 				</div>
 			))}
 
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<Button type="button" variant="outline" className="w-full">
-						Add Block
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="center">
-					{BLOCK_TYPES.map((bt) => (
-						<DropdownMenuItem
-							key={bt.type}
-							onClick={() => addBlock(bt.type)}
-						>
-							{bt.label}
-						</DropdownMenuItem>
-					))}
-				</DropdownMenuContent>
-			</DropdownMenu>
+			<div className="flex gap-2">
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button type="button" variant="outline" className="flex-1">
+							Add Block
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="center">
+						{BLOCK_TYPES.map((bt) => (
+							<DropdownMenuItem
+								key={bt.type}
+								onClick={() => addBlock(bt.type)}
+							>
+								{bt.label}
+							</DropdownMenuItem>
+						))}
+					</DropdownMenuContent>
+				</DropdownMenu>
+
+				<Dialog open={importOpen} onOpenChange={(open) => { setImportOpen(open); if (!open) { setImportJson(""); setImportError(""); } }}>
+					<DialogTrigger asChild>
+						<Button type="button" variant="outline">
+							Import JSON
+						</Button>
+					</DialogTrigger>
+					<DialogContent className="max-w-2xl">
+						<DialogHeader>
+							<DialogTitle>Import Content Blocks</DialogTitle>
+							<DialogDescription>
+								Paste a JSON array of content blocks. See docs/content-blocks-example.json for a complete example with all 28 block types.
+							</DialogDescription>
+						</DialogHeader>
+						<Textarea
+							value={importJson}
+							onChange={(e) => { setImportJson(e.target.value); setImportError(""); }}
+							placeholder='[{"type": "paragraph", "text": "Hello world"}]'
+							className="min-h-[300px] font-mono text-xs"
+						/>
+						{importError && (
+							<p className="text-sm text-destructive" role="alert">{importError}</p>
+						)}
+						<div className="flex items-center gap-4">
+							<label className="flex items-center gap-2 text-sm">
+								<input
+									type="radio"
+									name="importMode"
+									checked={importMode === "replace"}
+									onChange={() => setImportMode("replace")}
+								/>
+								Replace all blocks
+							</label>
+							<label className="flex items-center gap-2 text-sm">
+								<input
+									type="radio"
+									name="importMode"
+									checked={importMode === "append"}
+									onChange={() => setImportMode("append")}
+								/>
+								Append to existing
+							</label>
+						</div>
+						<DialogFooter>
+							<Button type="button" variant="outline" onClick={() => setImportOpen(false)}>
+								Cancel
+							</Button>
+							<Button type="button" onClick={handleImport} disabled={!importJson.trim()}>
+								Import
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+
+				<Button type="button" variant="outline" onClick={handleExport} disabled={blocks.length === 0}>
+					{copyFeedback ? "Copied!" : "Export JSON"}
+				</Button>
+			</div>
 		</div>
 	);
 }

@@ -91,7 +91,7 @@ export function EntryForm() {
 		return (
 			<div className="space-y-4">
 				<div className="rounded-lg border bg-card p-4 text-center">
-					<p className="text-lg font-semibold">You're in!</p>
+					<p className="text-lg font-semibold">You&apos;re in!</p>
 					<p className="text-sm text-muted-foreground">
 						Complete actions below to earn bonus entries.
 					</p>

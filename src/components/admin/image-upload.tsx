@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, type ChangeEvent } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
