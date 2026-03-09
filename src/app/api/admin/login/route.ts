@@ -9,7 +9,8 @@ import { verifyTurnstileToken } from "@/lib/turnstile";
 export async function POST(request: NextRequest) {
 	try {
 		const ip = getClientIp(request);
-		if (!checkRateLimit(`login:${ip}`, 3, 60 * 60 * 1000)) {
+		const rateLimitKey = `login:${ip}`;
+		if (!checkRateLimit(rateLimitKey, 5, 60 * 60 * 1000)) {
 			return apiError("RATE_LIMITED", "Too many login attempts. Try again later.");
 		}
 
