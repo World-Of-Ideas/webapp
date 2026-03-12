@@ -1,4 +1,4 @@
-.PHONY: help dev build lint typecheck test test-watch test-coverage test-ci \
+.PHONY: help dev build lint typecheck test test-watch test-coverage \
        e2e e2e-ui e2e-headed e2e-admin e2e-posts e2e-pages e2e-readonly e2e-tracking \
        db-generate db-migrate db-seed db-studio db-reset \
        db-recreate db-recreate-uat db-seed-uat \

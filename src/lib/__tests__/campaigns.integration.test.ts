@@ -18,7 +18,7 @@ import {
 
 describe("campaigns (integration)", () => {
 	beforeEach(async () => {
-		await cleanTables("email_campaigns", "subscribers");
+		await cleanTables("email_campaigns", "giveaway_actions", "giveaway_entries", "subscribers");
 	});
 
 	describe("getCampaigns", () => {

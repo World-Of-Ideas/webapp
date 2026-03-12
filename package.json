@@ -48,6 +48,9 @@
 		"vitest": "^4.0.18",
 		"wrangler": "4.56.0"
 	},
+	"engines": {
+		"node": ">=22"
+	},
 	"private": true,
 	"lint-staged": {
 		"src/**/*.{ts,tsx}": [
