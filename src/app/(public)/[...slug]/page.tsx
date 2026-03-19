@@ -71,12 +71,14 @@ export default async function CatchAllPage({
 	const layout = (rawLayout ?? "default") as PageLayout;
 	const cardVariant = settings.theme.postCardVariant;
 
-	// Build breadcrumbs from slug hierarchy (all except current page)
+	// Build breadcrumbs from slug hierarchy — look up parent page titles
 	const breadcrumbItems = [{ label: "Home", href: "/" }];
 	const slugParts = slug;
 	for (let i = 0; i < slugParts.length - 1; i++) {
-		const href = `/${slugParts.slice(0, i + 1).join("/")}`;
-		breadcrumbItems.push({ label: slugParts[i], href });
+		const parentSlug = slugParts.slice(0, i + 1).join("/");
+		const parentPage = await getPublishedPageBySlug(parentSlug);
+		const href = `/${parentSlug}`;
+		breadcrumbItems.push({ label: parentPage?.title ?? slugParts[i], href });
 	}
 
 	function renderTemplate() {

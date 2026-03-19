@@ -1,3 +1,4 @@
+import { count, sql, lt } from "drizzle-orm";
 import { getDb } from "@/db";
 import { errorLog } from "@/db/schema";
 
@@ -61,7 +62,6 @@ export async function captureMessage(
  * Get recent error log entries for the admin dashboard.
  */
 export async function getErrorLog(page: number, limit: number) {
-	const { count } = await import("drizzle-orm");
 	const db = await getDb();
 	const offset = (page - 1) * limit;
 
@@ -81,7 +81,6 @@ export async function getErrorLog(page: number, limit: number) {
  * Delete error log entries older than the given number of days.
  */
 export async function cleanupErrorLog(olderThanDays: number): Promise<void> {
-	const { sql, lt } = await import("drizzle-orm");
 	const db = await getDb();
 	await db.delete(errorLog).where(
 		lt(errorLog.createdAt, sql`datetime('now', ${`-${olderThanDays} days`})`),

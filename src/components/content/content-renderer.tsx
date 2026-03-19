@@ -55,7 +55,7 @@ export function ContentRenderer({ blocks, features }: ContentRendererProps) {
 					case "table":
 						return <TableBlock key={key} block={block} />;
 					case "cta":
-						return <CtaBlock key={key} block={block} />;
+						return <CtaBlock key={key} block={block} features={features} />;
 					case "download":
 						return <DownloadBlock key={key} block={block} />;
 					case "video":

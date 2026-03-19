@@ -5,14 +5,16 @@ import { isSafeUrl } from "@/lib/utils";
 
 interface CtaBlockProps {
 	block: ContentBlock;
+	features?: Record<string, boolean>;
 }
 
-export async function CtaBlock({ block }: CtaBlockProps) {
+export async function CtaBlock({ block, features }: CtaBlockProps) {
 	const settings = await getSiteSettings();
 	const text = block.text ?? "Get started today!";
+	const waitlistEnabled = features?.waitlist ?? settings.features.waitlist;
 
 	// Adaptive CTA: waitlist form (pre-launch) or product links (post-launch)
-	if (settings.features.waitlist) {
+	if (waitlistEnabled) {
 		return (
 			<div className="my-6 rounded-lg gradient-purple p-4 text-center sm:my-8 sm:p-6">
 				<p className="mb-4 text-base font-medium text-white sm:text-lg">{text}</p>

@@ -14,14 +14,16 @@ export default async function EditPagePage({
 }) {
 	const { slug } = await params;
 
-	const page = await getPageBySlug(slug);
+	const [page, allPages] = await Promise.all([
+		getPageBySlug(slug),
+		getAllPageSummaries(),
+	]);
 
 	if (!page) {
 		notFound();
 	}
 
 	const isSystem = isSystemPage(slug);
-	const allPages = await getAllPageSummaries();
 	const parentSlugs = allPages.map((p) => p.slug);
 
 	return (

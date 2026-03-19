@@ -40,7 +40,11 @@ export async function POST(
 			return apiError("VALIDATION_ERROR", "No active subscribers to send to");
 		}
 
-		await markCampaignSending(numId, emails.length);
+		// Atomic: only transitions draft → sending (prevents double-send race)
+		const claimed = await markCampaignSending(numId, emails.length);
+		if (!claimed) {
+			return apiError("VALIDATION_ERROR", "Campaign has already been sent or is sending");
+		}
 
 		const env = await getEnv();
 		const jobs: EmailJob[] = emails.map((email) => ({

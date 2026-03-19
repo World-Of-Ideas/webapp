@@ -164,7 +164,7 @@ export function validateSiteSettingsBody(body: unknown): string | null {
 	if (b.social !== undefined) {
 		if (typeof b.social !== "object" || b.social === null || Array.isArray(b.social)) return "Social must be an object";
 		for (const [key, val] of Object.entries(b.social as Record<string, unknown>)) {
-			if (!VALID_SOCIAL_KEYS.includes(key)) return `Unknown social key: ${key}`;
+			if (!VALID_SOCIAL_KEYS.includes(key)) return "Unknown social key provided";
 			if (typeof val !== "string") return `social.${key} must be a string`;
 			if (val.length > 200) return `social.${key} is too long (max 200 characters)`;
 			if (key === "twitter") {

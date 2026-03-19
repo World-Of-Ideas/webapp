@@ -19,7 +19,7 @@ export async function generateMetadata({
 	const tag = decodeURIComponent(rawTag);
 	const settings = await getSiteSettings();
 	if (!settings.features.blog) {
-		return {};
+		return { robots: { index: false } };
 	}
 
 	const title = `Posts tagged "${tag}"`;

@@ -8,7 +8,7 @@ import { SignupChart } from "@/components/admin/signup-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-	title: "Dashboard",
+	title: "Dashboard | Admin",
 };
 
 function StatsCard({

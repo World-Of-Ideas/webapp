@@ -78,8 +78,8 @@ export async function fireWebhooks(
 		});
 
 		const matching = activeWebhooks.filter((w) => {
-			const events = w.events as string[];
-			return events.includes(event);
+			const events = w.events;
+			return Array.isArray(events) && events.includes(event);
 		}).slice(0, 20);
 
 		await Promise.allSettled(

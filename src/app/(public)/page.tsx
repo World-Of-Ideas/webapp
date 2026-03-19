@@ -34,8 +34,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-	const settings = await getSiteSettings();
-	const homePage = await getPageBySlug("home");
+	const [settings, homePage] = await Promise.all([
+		getSiteSettings(),
+		getPageBySlug("home"),
+	]);
 	const recentPosts = settings.features.blog ? await getRecentPosts(3) : [];
 
 	const isPreLaunch = settings.features.waitlist;

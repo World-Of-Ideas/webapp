@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { emailCampaigns, subscribers } from "@/db/schema";
 
@@ -47,13 +47,14 @@ export async function getActiveSubscriberEmails(): Promise<string[]> {
 	return rows.map((r) => r.email);
 }
 
-/** Mark campaign as sending with total count. */
-export async function markCampaignSending(id: number, totalCount: number) {
+/** Mark campaign as sending with total count. Returns true if status was draft (atomic). */
+export async function markCampaignSending(id: number, totalCount: number): Promise<boolean> {
 	const db = await getDb();
-	await db.update(emailCampaigns).set({
+	const result = await db.update(emailCampaigns).set({
 		status: "sending",
 		totalCount,
-	}).where(eq(emailCampaigns.id, id));
+	}).where(and(eq(emailCampaigns.id, id), eq(emailCampaigns.status, "draft")));
+	return (result as unknown as { rowsAffected: number }).rowsAffected > 0;
 }
 
 /** Increment sent count atomically. */

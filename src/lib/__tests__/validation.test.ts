@@ -960,7 +960,7 @@ describe("validateSiteSettingsBody", () => {
 	});
 
 	it("rejects unknown social keys", () => {
-		expect(validateSiteSettingsBody({ social: { linkedin: "https://linkedin.com" } })).toBe("Unknown social key: linkedin");
+		expect(validateSiteSettingsBody({ social: { linkedin: "https://linkedin.com" } })).toBe("Unknown social key provided");
 	});
 
 	it("rejects unknown productLinks keys", () => {
