@@ -1,5 +1,5 @@
 .PHONY: help dev build lint typecheck test test-watch test-coverage \
-       e2e e2e-ui e2e-headed e2e-admin e2e-posts e2e-pages e2e-readonly e2e-tracking \
+       e2e e2e-ui e2e-headed e2e-admin e2e-posts e2e-pages e2e-readonly e2e-tracking e2e-public \
        db-generate db-migrate db-seed db-studio db-reset \
        db-recreate db-recreate-uat db-seed-uat \
        deploy-uat deploy-prod preview preview-uat \
@@ -17,7 +17,7 @@ preview:              ## Build and preview locally via OpenNext
 
 # ── Quality ──────────────────────────────────────────────────
 lint:                 ## Run ESLint
-	npx next lint
+	npx eslint src/
 
 typecheck:            ## Run TypeScript type checking
 	npx tsc --noEmit
@@ -56,22 +56,26 @@ e2e-readonly:         ## Run readonly-admin E2E tests only
 e2e-tracking:         ## Run tracking E2E tests only
 	npx playwright test e2e/tracking.spec.ts
 
+e2e-public:           ## Run public forms E2E tests only
+	npx playwright test e2e/public-forms.spec.ts
+
 e2e-all:              ## Run each E2E spec one by one
 	npx playwright test e2e/admin.spec.ts
 	npx playwright test e2e/posts.spec.ts
 	npx playwright test e2e/pages.spec.ts
 	npx playwright test e2e/readonly-admin.spec.ts
 	npx playwright test e2e/tracking.spec.ts
+	npx playwright test e2e/public-forms.spec.ts
 
 # ── CI / Audit ───────────────────────────────────────────────
 ci:                   ## Full CI pipeline: lint + typecheck + unit + e2e
-	npx next lint
+	npx eslint src/
 	npx tsc --noEmit
 	npx vitest run
 	npx playwright test
 
 audit:                ## Pre-audit check: lint + typecheck + coverage + e2e
-	npx next lint
+	npx eslint src/
 	npx tsc --noEmit
 	npx vitest run --coverage
 	npx playwright test e2e/admin.spec.ts
@@ -79,6 +83,7 @@ audit:                ## Pre-audit check: lint + typecheck + coverage + e2e
 	npx playwright test e2e/pages.spec.ts
 	npx playwright test e2e/readonly-admin.spec.ts
 	npx playwright test e2e/tracking.spec.ts
+	npx playwright test e2e/public-forms.spec.ts
 
 # ── Database ─────────────────────────────────────────────────
 db-generate:          ## Generate Drizzle migration files
@@ -97,13 +102,13 @@ db-reset:             ## Reset local DB: migrate + seed
 	npx wrangler d1 migrations apply DB --local
 	npx wrangler d1 execute DB --local --file=src/db/seed.sql
 
-db-recreate:          ## Recreate local DB from scratch: wipe + migrate + seed
+db-recreate:          ## Recreate local DB from scratch: wipe D1 + migrate + seed
 	rm -rf .wrangler/state/v3/d1
 	npx wrangler d1 migrations apply DB --local
 	npx wrangler d1 execute DB --local --file=src/db/seed.sql
 
 db-recreate-uat:      ## Recreate UAT DB from scratch: drop all + migrate + seed
-	npx wrangler d1 execute DB --env uat --remote --command "DROP TABLE IF EXISTS giveaway_actions; DROP TABLE IF EXISTS giveaway_entries; DROP TABLE IF EXISTS contact_submissions; DROP TABLE IF EXISTS admin_sessions; DROP TABLE IF EXISTS posts; DROP TABLE IF EXISTS pages; DROP TABLE IF EXISTS subscribers; DROP TABLE IF EXISTS tracking_settings; DROP TABLE IF EXISTS site_settings; DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS sqlite_sequence; DELETE FROM _cf_KV;"
+	npx wrangler d1 execute DB --env uat --remote --command "DROP TABLE IF EXISTS giveaway_actions; DROP TABLE IF EXISTS giveaway_entries; DROP TABLE IF EXISTS contact_submissions; DROP TABLE IF EXISTS admin_sessions; DROP TABLE IF EXISTS audit_log; DROP TABLE IF EXISTS email_campaigns; DROP TABLE IF EXISTS error_log; DROP TABLE IF EXISTS webhooks; DROP TABLE IF EXISTS redirects; DROP TABLE IF EXISTS posts; DROP TABLE IF EXISTS pages; DROP TABLE IF EXISTS subscribers; DROP TABLE IF EXISTS tracking_settings; DROP TABLE IF EXISTS site_settings; DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS sqlite_sequence; DELETE FROM _cf_KV;"
 	npx wrangler d1 migrations apply DB --env uat --remote
 	npx wrangler d1 execute DB --env uat --remote --file=src/db/seed.sql
 
@@ -130,8 +135,8 @@ db-migrate-prod:      ## Apply migrations to Production D1 (remote)
 clean:                ## Remove build artifacts and test results
 	rm -rf .next .open-next test-results playwright-report
 
-nuke:                 ## Full reset: wipe everything, reinstall, recreate DB, start dev
-	rm -rf .next .open-next node_modules .wrangler/state/v3/d1 test-results playwright-report
+nuke:                 ## Full reset: wipe everything (builds, deps, local D1/R2/cache), reinstall, recreate DB
+	rm -rf .next .open-next node_modules .wrangler/state test-results playwright-report
 	npm install
 	npx wrangler d1 migrations apply DB --local
 	npx wrangler d1 execute DB --local --file=src/db/seed.sql

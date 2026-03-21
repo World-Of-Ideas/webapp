@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
 							"img-src 'self' data: https://*.r2.dev https://www.facebook.com",
 							"font-src 'self'",
 							"connect-src 'self' https://challenges.cloudflare.com https://www.google-analytics.com https://www.facebook.com https://connect.facebook.net https://www.googletagmanager.com",
-							"frame-src https://challenges.cloudflare.com https://www.googletagmanager.com",
+							"frame-src https://challenges.cloudflare.com https://www.googletagmanager.com https://www.youtube-nocookie.com https://player.vimeo.com",
 							"object-src 'none'",
 							"base-uri 'self'",
 							"upgrade-insecure-requests",

@@ -1,16 +1,23 @@
+import { cache } from "react";
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { trackingSettings } from "@/db/schema";
 
 export type TrackingSettings = typeof trackingSettings.$inferSelect;
 
-export async function getTrackingSettings(): Promise<TrackingSettings | null> {
+async function fetchTrackingSettings(): Promise<TrackingSettings | null> {
 	const db = await getDb();
 	const row = await db.query.trackingSettings.findFirst({
 		where: eq(trackingSettings.id, 1),
 	});
 	return row ?? null;
 }
+
+/** React.cache wrapper for per-request deduplication in server components. */
+export const getTrackingSettings = cache(fetchTrackingSettings);
+
+/** Uncached read for API routes (always fresh). */
+export const getTrackingSettingsDirect = fetchTrackingSettings;
 
 export async function updateTrackingSettings(data: {
 	metaPixelEnabled?: boolean;
@@ -89,7 +96,7 @@ export async function sendMetaConversionEvent(params: {
 	ip?: string;
 	userAgent?: string;
 }): Promise<void> {
-	const settings = await getTrackingSettings();
+	const settings = await fetchTrackingSettings();
 	if (!settings?.metaCapiEnabled || !settings.metaCapiToken || !settings.metaPixelId) {
 		return;
 	}
@@ -145,7 +152,7 @@ export async function sendGaConversionEvent(params: {
 	email?: string;
 	sourceUrl: string;
 }): Promise<void> {
-	const settings = await getTrackingSettings();
+	const settings = await fetchTrackingSettings();
 	if (!settings?.gaMpEnabled || !settings.gaMpApiSecret || !settings.gaMeasurementId) {
 		return;
 	}

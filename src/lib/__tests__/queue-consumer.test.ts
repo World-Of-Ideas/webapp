@@ -268,6 +268,181 @@ describe("queue-consumer", () => {
 		});
 	});
 
+	// --- Remaining email types (previously uncovered) ---
+
+	describe("waitlist_admin_notification", () => {
+		it("sends notification to CONTACT_EMAIL with subscriber details", async () => {
+			const message = createMockMessage<EmailJob>({
+				type: "waitlist_admin_notification",
+				payload: {
+					email: "newuser@example.com",
+					name: "New User",
+					position: 15,
+					source: "twitter",
+				},
+			});
+
+			const batch = createMockBatch([message]);
+			await handleEmailQueue(batch, mockEnv);
+
+			expect(sendEmail).toHaveBeenCalledOnce();
+			const callArgs = vi.mocked(sendEmail).mock.calls[0][1];
+			expect(callArgs.to).toBe("admin@example.com");
+			expect(callArgs.subject).toContain("New waitlist signup");
+			expect(callArgs.html).toContain("New User");
+			expect(callArgs.html).toContain("newuser@example.com");
+			expect(callArgs.html).toContain("#15");
+			expect(callArgs.html).toContain("twitter");
+			// Admin notifications have no unsubscribe headers
+			expect(callArgs.headers).toBeUndefined();
+			expect(message.ack).toHaveBeenCalled();
+		});
+
+		it("omits source line when source is undefined", async () => {
+			const message = createMockMessage<EmailJob>({
+				type: "waitlist_admin_notification",
+				payload: {
+					email: "user@example.com",
+					name: "User",
+					position: 1,
+				},
+			});
+
+			const batch = createMockBatch([message]);
+			await handleEmailQueue(batch, mockEnv);
+
+			const html = vi.mocked(sendEmail).mock.calls[0][1].html;
+			expect(html).not.toContain("Source");
+		});
+
+		it("escapes HTML in admin notification fields", async () => {
+			const message = createMockMessage<EmailJob>({
+				type: "waitlist_admin_notification",
+				payload: {
+					email: "user@example.com",
+					name: '<img src=x onerror=alert(1)>',
+					position: 1,
+					source: "<script>xss</script>",
+				},
+			});
+
+			const batch = createMockBatch([message]);
+			await handleEmailQueue(batch, mockEnv);
+
+			const callArgs = vi.mocked(sendEmail).mock.calls[0][1];
+			expect(callArgs.html).not.toContain("<img");
+			expect(callArgs.html).not.toContain("<script>");
+			expect(callArgs.html).toContain("&lt;img");
+			expect(callArgs.subject).toContain("&lt;img");
+		});
+	});
+
+	describe("campaign_email", () => {
+		it("sends campaign with unsubscribe headers", async () => {
+			const message = createMockMessage<EmailJob>({
+				type: "campaign_email",
+				payload: {
+					to: "subscriber@example.com",
+					subject: "Newsletter Issue #1",
+					html: "<h1>Welcome</h1><p>Newsletter content</p>",
+				},
+			});
+
+			const batch = createMockBatch([message]);
+			await handleEmailQueue(batch, mockEnv);
+
+			expect(sendEmail).toHaveBeenCalledOnce();
+			const callArgs = vi.mocked(sendEmail).mock.calls[0][1];
+			expect(callArgs.to).toBe("subscriber@example.com");
+			expect(callArgs.subject).toBe("Newsletter Issue #1");
+			expect(callArgs.html).toBe("<h1>Welcome</h1><p>Newsletter content</p>");
+			expect(callArgs.headers).toBeDefined();
+			expect(callArgs.headers!["List-Unsubscribe"]).toContain("https://example.com/api/unsubscribe");
+			expect(callArgs.headers!["List-Unsubscribe-Post"]).toBe("List-Unsubscribe=One-Click");
+			expect(message.ack).toHaveBeenCalled();
+		});
+
+		it("generates unsubscribe token for campaign recipient", async () => {
+			const message = createMockMessage<EmailJob>({
+				type: "campaign_email",
+				payload: {
+					to: "cam@example.com",
+					subject: "Test",
+					html: "<p>Test</p>",
+				},
+			});
+
+			const batch = createMockBatch([message]);
+			await handleEmailQueue(batch, mockEnv);
+
+			expect(generateUnsubscribeToken).toHaveBeenCalledWith(
+				"cam@example.com",
+				"test-secret-123",
+			);
+		});
+	});
+
+	describe("email_verification", () => {
+		it("sends verification email with prefixed token", async () => {
+			const message = createMockMessage<EmailJob>({
+				type: "email_verification",
+				payload: {
+					email: "pending@example.com",
+					name: "Pending User",
+				},
+			});
+
+			const batch = createMockBatch([message]);
+			await handleEmailQueue(batch, mockEnv);
+
+			expect(sendEmail).toHaveBeenCalledOnce();
+			const callArgs = vi.mocked(sendEmail).mock.calls[0][1];
+			expect(callArgs.to).toBe("pending@example.com");
+			expect(callArgs.subject).toBe("Verify your email to join the waitlist");
+			expect(callArgs.html).toContain("Hi Pending User");
+			expect(callArgs.html).toContain("Verify Email");
+			expect(callArgs.html).toContain("https://example.com/api/verify-email");
+			// No unsubscribe headers on verification emails
+			expect(callArgs.headers).toBeUndefined();
+			expect(message.ack).toHaveBeenCalled();
+		});
+
+		it("uses verify: prefix for token generation", async () => {
+			const message = createMockMessage<EmailJob>({
+				type: "email_verification",
+				payload: {
+					email: "verify@example.com",
+					name: "Verifier",
+				},
+			});
+
+			const batch = createMockBatch([message]);
+			await handleEmailQueue(batch, mockEnv);
+
+			expect(generateUnsubscribeToken).toHaveBeenCalledWith(
+				"verify:verify@example.com",
+				"test-secret-123",
+			);
+		});
+
+		it("escapes HTML in verification email name", async () => {
+			const message = createMockMessage<EmailJob>({
+				type: "email_verification",
+				payload: {
+					email: "test@example.com",
+					name: '<b>Bold</b> & "quoted"',
+				},
+			});
+
+			const batch = createMockBatch([message]);
+			await handleEmailQueue(batch, mockEnv);
+
+			const html = vi.mocked(sendEmail).mock.calls[0][1].html;
+			expect(html).toContain("&lt;b&gt;Bold&lt;/b&gt; &amp; &quot;quoted&quot;");
+			expect(html).not.toContain("<b>Bold</b>");
+		});
+	});
+
 	// --- Multiple messages in batch ---
 
 	describe("batch processing", () => {

@@ -1,5 +1,5 @@
 -- Consolidated initial migration
--- All tables + indexes for the webapp schema
+-- All tables + indexes for the web-template schema
 
 CREATE TABLE `admin_sessions` (
 	`id` text PRIMARY KEY NOT NULL,

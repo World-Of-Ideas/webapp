@@ -42,6 +42,7 @@ fbq('init', '${pixelId}');
 fbq('track', 'PageView');`}
 			</Script>
 			<noscript>
+				{/* eslint-disable-next-line @next/next/no-img-element -- Meta Pixel noscript tracker requires a plain img tag, not next/image */}
 				<img
 					height="1"
 					width="1"

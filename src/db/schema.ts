@@ -72,7 +72,7 @@ export const contactSubmissions = sqliteTable(
 export const giveawayEntries = sqliteTable("giveaway_entries", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	email: text("email").notNull().unique(),
-	subscriberId: integer("subscriber_id").references(() => subscribers.id),
+	subscriberId: integer("subscriber_id").references(() => subscribers.id, { onDelete: "set null" }),
 	totalEntries: integer("total_entries").notNull().default(1),
 	source: text("source"),
 	createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
@@ -86,7 +86,7 @@ export const giveawayActions = sqliteTable(
 		id: integer("id").primaryKey({ autoIncrement: true }),
 		entryId: integer("entry_id")
 			.notNull()
-			.references(() => giveawayEntries.id),
+			.references(() => giveawayEntries.id, { onDelete: "cascade" }),
 		action: text("action").notNull(),
 		bonusEntries: integer("bonus_entries").notNull(),
 		metadata: text("metadata"),

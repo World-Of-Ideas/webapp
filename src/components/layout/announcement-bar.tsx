@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore, useCallback } from "react";
 import Link from "next/link";
 import type { AnnouncementSettings } from "@/types/site-settings";
 import { isSafeUrl } from "@/lib/utils";
@@ -11,22 +11,25 @@ interface AnnouncementBarProps {
 
 const STORAGE_KEY = "announcement-dismissed";
 
+function getServerSnapshot() {
+	return true; // Treat as dismissed on server to avoid flash
+}
+
 export function AnnouncementBar({ announcement }: AnnouncementBarProps) {
 	const [dismissed, setDismissed] = useState(false);
-	const [loaded, setLoaded] = useState(false);
 
-	useEffect(() => {
-		let isDismissed = false;
+	const subscribe = useCallback(() => () => {}, []);
+	const getSnapshot = useCallback(() => {
 		try {
-			isDismissed = sessionStorage.getItem(STORAGE_KEY) === announcement.text;
+			return sessionStorage.getItem(STORAGE_KEY) === announcement.text;
 		} catch {
-			// sessionStorage may not be available
+			return false;
 		}
-		setDismissed(isDismissed);
-		setLoaded(true);
 	}, [announcement.text]);
 
-	if (!loaded || !announcement.enabled || !announcement.text || dismissed) return null;
+	const storageDismissed = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+	if (!announcement.enabled || !announcement.text || dismissed || storageDismissed) return null;
 
 	const handleDismiss = () => {
 		setDismissed(true);

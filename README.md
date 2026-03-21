@@ -1,4 +1,4 @@
-# Webapp — Next.js Marketing Site Template
+# Web Template — Next.js Marketing Site Template
 
 A full-featured marketing site template built with **Next.js 16** and deployed on **Cloudflare Workers** via OpenNext. Includes waitlist, giveaway, blog, contact forms, content pages, pricing, changelog, admin panel, and theme system — all config-driven from a single DB table.
 
@@ -47,8 +47,8 @@ You do **not** need a Cloudflare account for local development. Wrangler runs D1
 ### 1. Clone the repo
 
 ```bash
-git clone <repo-url> webapp
-cd webapp
+git clone <repo-url> web-template
+cd web-template
 ```
 
 ### 2. Install dependencies

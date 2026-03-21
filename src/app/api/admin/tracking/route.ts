@@ -1,14 +1,14 @@
 import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api";
 import { requireAdminSession } from "@/lib/admin-auth";
-import { getTrackingSettings, updateTrackingSettings } from "@/lib/tracking";
+import { getTrackingSettingsDirect, updateTrackingSettings } from "@/lib/tracking";
 
 export async function GET() {
 	if (!(await requireAdminSession())) {
 		return apiError("UNAUTHORIZED", "Not authenticated");
 	}
 
-	const settings = await getTrackingSettings();
+	const settings = await getTrackingSettingsDirect();
 
 	return apiSuccess({
 		metaPixelEnabled: settings?.metaPixelEnabled ?? false,

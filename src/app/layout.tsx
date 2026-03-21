@@ -7,6 +7,10 @@ import { hexToOklch, hexToOklchLight } from "@/lib/color";
 import { ThemeProvider } from "@/components/shared/theme-provider";
 import "./globals.css";
 
+// D1 database is only available at runtime via Cloudflare bindings.
+// Force all pages to SSR at request time to avoid SQLITE_BUSY during prerendering.
+export const dynamic = "force-dynamic";
+
 const inter = Inter({
 	variable: "--font-inter",
 	subsets: ["latin"],

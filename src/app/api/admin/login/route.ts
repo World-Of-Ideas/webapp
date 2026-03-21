@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getEnv } from "@/db";
 import { apiSuccess, apiError, getClientIp } from "@/lib/api";
 import { createSession, cleanupExpiredSessions, verifyPassword } from "@/lib/admin";
+import { cleanupErrorLog } from "@/lib/error-tracking";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
@@ -38,8 +39,11 @@ export async function POST(request: NextRequest) {
 			return apiError("INTERNAL_ERROR", "Server configuration error");
 		}
 
-		// Cleanup expired sessions on each login attempt
-		await cleanupExpiredSessions();
+		// Cleanup expired sessions and old error logs on each login attempt
+		await Promise.all([
+			cleanupExpiredSessions(),
+			cleanupErrorLog(30),
+		]);
 
 		const isValid = await verifyPassword(password, adminPw);
 		if (!isValid) {
