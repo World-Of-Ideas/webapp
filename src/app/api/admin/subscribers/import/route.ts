@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/api";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
 import { getDb } from "@/db";
 import { subscribers } from "@/db/schema";
 import { generateReferralCode } from "@/lib/referral";
@@ -56,8 +57,9 @@ export async function POST(request: NextRequest) {
 	if (!(await requireAdminSession())) {
 		return apiError("UNAUTHORIZED", "Not authenticated");
 	}
-	if (!(await getSiteSettingsDirect()).features.waitlist) {
-		return apiError("NOT_FOUND", "Waitlist feature is not enabled");
+	const settings = await getSiteSettingsDirect();
+	if (getSubscriberMode(settings.features) === "off") {
+		return apiError("NOT_FOUND", "Subscribers feature is not enabled");
 	}
 
 	try {

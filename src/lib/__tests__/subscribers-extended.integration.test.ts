@@ -6,7 +6,7 @@ import {
 	getSubscriberStatus,
 	getSubscriberByEmail,
 	unsubscribe,
-} from "../waitlist";
+} from "../subscribers";
 
 describe("waitlist extended (integration)", () => {
 	beforeEach(async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateUnsubscribeToken, verifyUnsubscribeToken } from "../waitlist";
+import { generateUnsubscribeToken, verifyUnsubscribeToken } from "../subscribers";
 
 const TEST_SECRET = "test-secret-key-for-hmac";
 

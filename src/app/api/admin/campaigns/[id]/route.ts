@@ -2,11 +2,13 @@ import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
 import { getCampaignById, updateCampaign, deleteCampaign } from "@/lib/campaigns";
 import { validateCampaignUpdateBody } from "@/lib/validation";
 
-async function requireWaitlistFeature() {
-	return (await getSiteSettingsDirect()).features.waitlist;
+async function requireSubscriberFeature() {
+	const settings = await getSiteSettingsDirect();
+	return getSubscriberMode(settings.features) !== "off";
 }
 
 export async function GET(
@@ -16,7 +18,7 @@ export async function GET(
 	if (!(await requireAdminSession())) {
 		return apiError("UNAUTHORIZED", "Not authenticated");
 	}
-	if (!(await requireWaitlistFeature())) {
+	if (!(await requireSubscriberFeature())) {
 		return apiError("NOT_FOUND", "Feature not available");
 	}
 
@@ -37,7 +39,7 @@ export async function PUT(
 	if (!(await requireAdminSession())) {
 		return apiError("UNAUTHORIZED", "Not authenticated");
 	}
-	if (!(await requireWaitlistFeature())) {
+	if (!(await requireSubscriberFeature())) {
 		return apiError("NOT_FOUND", "Feature not available");
 	}
 
@@ -73,7 +75,7 @@ export async function DELETE(
 	if (!(await requireAdminSession())) {
 		return apiError("UNAUTHORIZED", "Not authenticated");
 	}
-	if (!(await requireWaitlistFeature())) {
+	if (!(await requireSubscriberFeature())) {
 		return apiError("NOT_FOUND", "Feature not available");
 	}
 

@@ -9,7 +9,7 @@ import {
 	getSubscriberCount,
 	unsubscribe,
 	getSubscribers,
-} from "../waitlist";
+} from "../subscribers";
 
 describe("waitlist (integration)", () => {
 	beforeEach(async () => {

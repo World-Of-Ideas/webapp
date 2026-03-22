@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { apiSuccess, apiError, getClientIp } from "@/lib/api";
-import { getSubscriberByReferralCode } from "@/lib/waitlist";
+import { getSubscriberByReferralCode } from "@/lib/subscribers";
 import { getPageBySlug } from "@/lib/pages";
 import { calculateEffectivePosition } from "@/lib/referral";
 import { getSiteSettingsDirect } from "@/lib/site-settings";

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
 import { getCampaigns } from "@/lib/campaigns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ const statusVariant: Record<string, "secondary" | "outline" | "default" | "destr
 
 export default async function CampaignsPage() {
 	const settings = await getSiteSettingsDirect();
-	if (!settings.features.waitlist) notFound();
+	if (getSubscriberMode(settings.features) === "off") notFound();
 
 	const campaigns = await getCampaigns();
 

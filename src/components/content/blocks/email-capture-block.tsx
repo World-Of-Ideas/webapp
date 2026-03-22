@@ -2,24 +2,30 @@
 
 import { useState } from "react";
 import type { ContentBlock } from "@/types/content";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
 import { Turnstile } from "@/components/shared/turnstile";
 
 interface EmailCaptureBlockProps {
 	block: ContentBlock;
+	features: Record<string, boolean>;
 }
 
-export function EmailCaptureBlock({ block }: EmailCaptureBlockProps) {
+export function EmailCaptureBlock({ block, features }: EmailCaptureBlockProps) {
 	const [email, setEmail] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState("");
 	const [turnstileToken, setTurnstileToken] = useState("");
 
-	if (!block) return null;
+	const mode = getSubscriberMode(features);
+
+	if (!block || mode === "off") return null;
 
 	const heading = block.emailCaptureHeading || "Stay updated";
 	const placeholder = block.emailCapturePlaceholder || "Enter your email";
 	const buttonText = block.emailCaptureButtonText || "Subscribe";
+
+	const endpoint = mode === "newsletter" ? "/api/newsletter" : "/api/waitlist";
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -27,15 +33,19 @@ export function EmailCaptureBlock({ block }: EmailCaptureBlockProps) {
 		setLoading(true);
 
 		try {
-			const res = await fetch("/api/waitlist", {
+			const body: Record<string, string> = { email, turnstileToken };
+			// Both APIs accept a name field; use default since this inline form has no name input
+			body.name = "Subscriber";
+
+			const res = await fetch(endpoint, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email, name: "", turnstileToken }),
+				body: JSON.stringify(body),
 			});
 
 			if (!res.ok) {
-				const data = (await res.json()) as { error?: string };
-				throw new Error(data.error ?? "Something went wrong");
+				const data = (await res.json()) as { error?: { message?: string } };
+				throw new Error(data.error?.message ?? "Something went wrong");
 			}
 
 			setSuccess(true);
@@ -50,7 +60,7 @@ export function EmailCaptureBlock({ block }: EmailCaptureBlockProps) {
 		return (
 			<div className="my-6 rounded-lg border bg-muted/30 p-6 text-center sm:p-8">
 				<p className="text-base font-medium text-foreground sm:text-lg">
-					You&apos;re on the list!
+					Thanks for subscribing!
 				</p>
 			</div>
 		);

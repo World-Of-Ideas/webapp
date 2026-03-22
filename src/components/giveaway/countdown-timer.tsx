@@ -27,11 +27,14 @@ function calculateTimeLeft(endDate: string): TimeLeft | null {
 }
 
 export function CountdownTimer({ endDate }: CountdownTimerProps) {
-	const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(() =>
-		calculateTimeLeft(endDate),
-	);
+	// Initialize as null to avoid hydration mismatch (Date.now() differs server vs client)
+	const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
+	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
+		setMounted(true);
+		setTimeLeft(calculateTimeLeft(endDate));
+
 		const interval = setInterval(() => {
 			const remaining = calculateTimeLeft(endDate);
 			setTimeLeft(remaining);
@@ -43,6 +46,20 @@ export function CountdownTimer({ endDate }: CountdownTimerProps) {
 
 		return () => clearInterval(interval);
 	}, [endDate]);
+
+	if (!mounted) {
+		// Show placeholder during SSR/hydration to avoid mismatch
+		return (
+			<div className="flex justify-center gap-3" role="timer">
+				{["Days", "Hours", "Minutes", "Seconds"].map((label) => (
+					<div key={label} className="flex flex-col items-center rounded-lg border bg-card p-3 min-w-[4.5rem]">
+						<span className="text-2xl font-bold tabular-nums">--</span>
+						<span className="text-xs text-muted-foreground">{label}</span>
+					</div>
+				))}
+			</div>
+		);
+	}
 
 	if (!timeLeft) {
 		return (

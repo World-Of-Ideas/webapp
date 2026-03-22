@@ -9,7 +9,7 @@ const CACHE_TAG = "site-settings";
 
 const DEFAULT_SOCIAL = { twitter: "", github: "", discord: "", instagram: "" };
 const DEFAULT_PRODUCT_LINKS = { appUrl: "", appStoreUrl: "", playStoreUrl: "" };
-const DEFAULT_FEATURES: Record<string, boolean> = { waitlist: true, giveaway: true, blog: true, contact: true, pricing: false, changelog: false, api: false, doubleOptIn: false, maintenance: false };
+const DEFAULT_FEATURES: Record<string, boolean> = { waitlist: true, giveaway: true, blog: true, contact: true, pricing: false, changelog: false, api: false, doubleOptIn: false, maintenance: false, newsletter: false };
 const DEFAULT_ANNOUNCEMENT: AnnouncementSettings = { enabled: false, text: "", linkUrl: "", linkText: "" };
 const DEFAULT_UI: Record<string, boolean> = { search: true, themeToggle: true };
 const DEFAULT_THEME: ThemeSettings = {
@@ -118,7 +118,16 @@ export async function updateSiteSettings(data: {
 	if (data.author !== undefined) updateSet.author = data.author;
 	if (data.social !== undefined) updateSet.social = JSON.stringify({ ...current.social, ...data.social });
 	if (data.productLinks !== undefined) updateSet.productLinks = JSON.stringify({ ...current.productLinks, ...data.productLinks });
-	if (data.features !== undefined) updateSet.features = JSON.stringify({ ...current.features, ...data.features });
+	if (data.features !== undefined) {
+		const merged = { ...current.features, ...data.features };
+		// Mutual exclusion: waitlist and newsletter cannot both be enabled (waitlist wins if both sent)
+		if (data.features.waitlist === true) {
+			merged.newsletter = false;
+		} else if (data.features.newsletter === true) {
+			merged.waitlist = false;
+		}
+		updateSet.features = JSON.stringify(merged);
+	}
 	if (data.ui !== undefined) updateSet.ui = JSON.stringify({ ...current.ui, ...data.ui });
 	if (data.theme !== undefined) updateSet.theme = JSON.stringify({ ...current.theme, ...data.theme });
 	if (data.logoUrl !== undefined) updateSet.logoUrl = data.logoUrl;
@@ -138,7 +147,16 @@ export async function updateSiteSettings(data: {
 			author: data.author ?? "",
 			social: JSON.stringify(data.social ?? DEFAULT_SOCIAL),
 			productLinks: JSON.stringify(data.productLinks ?? DEFAULT_PRODUCT_LINKS),
-			features: JSON.stringify(data.features ?? DEFAULT_FEATURES),
+			features: JSON.stringify((() => {
+				if (!data.features) return DEFAULT_FEATURES;
+				const merged = { ...DEFAULT_FEATURES, ...data.features };
+				if (data.features.waitlist === true) {
+					merged.newsletter = false;
+				} else if (data.features.newsletter === true) {
+					merged.waitlist = false;
+				}
+				return merged;
+			})()),
 			ui: JSON.stringify(data.ui ?? DEFAULT_UI),
 			theme: JSON.stringify(data.theme ? { ...DEFAULT_THEME, ...data.theme } : DEFAULT_THEME),
 			logoUrl: data.logoUrl ?? null,

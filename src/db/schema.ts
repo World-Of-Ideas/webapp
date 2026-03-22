@@ -142,7 +142,7 @@ export const siteSettings = sqliteTable("site_settings", {
 	author: text("author").notNull().default(""),
 	social: text("social").notNull().default("{}"),
 	productLinks: text("product_links").notNull().default("{}"),
-	features: text("features").notNull().default('{"waitlist":true,"giveaway":true,"blog":true,"contact":true,"pricing":false,"changelog":false,"api":false}'),
+	features: text("features").notNull().default('{"waitlist":true,"giveaway":true,"blog":true,"contact":true,"pricing":false,"changelog":false,"api":false,"doubleOptIn":false,"maintenance":false,"newsletter":false}'),
 	ui: text("ui").notNull().default('{"search":true,"themeToggle":true}'),
 	theme: text("theme").notNull().default('{"preset":"bold","accentColor":"#9747ff","borderRadius":"0.625rem","headingWeight":"400","fontFamily":"inter","heroVariant":"gradient","headerVariant":"blur","footerVariant":"simple","postCardVariant":"bordered","ctaSectionVariant":"gradient"}'),
 	logoUrl: text("logo_url"),

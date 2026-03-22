@@ -2,6 +2,7 @@ import { desc } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/api";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
 import { getDb } from "@/db";
 import { subscribers } from "@/db/schema";
 
@@ -13,8 +14,8 @@ export async function GET() {
 	}
 
 	const settings = await getSiteSettingsDirect();
-	if (!settings.features.waitlist) {
-		return apiError("NOT_FOUND", "Waitlist feature is not enabled");
+	if (getSubscriberMode(settings.features) === "off") {
+		return apiError("NOT_FOUND", "Subscribers feature is not enabled");
 	}
 
 	const db = await getDb();

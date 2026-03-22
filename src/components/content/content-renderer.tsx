@@ -1,4 +1,5 @@
 import type { ContentBlock } from "@/types/content";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
 import { ParagraphBlock } from "./blocks/paragraph-block";
 import { HeadingBlock } from "./blocks/heading-block";
 import { ListBlock } from "./blocks/list-block";
@@ -92,9 +93,11 @@ export function ContentRenderer({ blocks, features }: ContentRendererProps) {
 						return <TabsBlock key={key} block={block} />;
 					case "review":
 						return <ReviewBlock key={key} block={block} />;
-					case "emailCapture":
-						if (features && !features.waitlist) return null;
-						return <EmailCaptureBlock key={key} block={block} />;
+					case "emailCapture": {
+						const subMode = getSubscriberMode(features ?? {});
+						if (subMode === "off") return null;
+						return <EmailCaptureBlock key={key} block={block} features={features ?? {}} />;
+					}
 					case "tableOfContents":
 						return <TocBlock key={key} block={block} allBlocks={blocks} />;
 					default:

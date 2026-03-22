@@ -3,10 +3,12 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { apiSuccess, apiError, getClientIp } from "@/lib/api";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
-import { getSubscriberByEmail, verifyUnsubscribeToken, verifySubscriberEmail } from "@/lib/waitlist";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
+import { getSubscriberByEmail, verifyUnsubscribeToken, verifySubscriberEmail } from "@/lib/subscribers";
 
 export async function GET(request: NextRequest) {
-	if (!(await getSiteSettingsDirect()).features.waitlist) {
+	const settings = await getSiteSettingsDirect();
+	if (getSubscriberMode(settings.features) === "off") {
 		return apiError("NOT_FOUND", "Feature not available");
 	}
 
@@ -38,5 +40,5 @@ export async function GET(request: NextRequest) {
 
 	await verifySubscriberEmail(email);
 
-	return apiSuccess({ message: "Email verified successfully. Welcome to the waitlist!" });
+	return apiSuccess({ message: "Email verified successfully!" });
 }

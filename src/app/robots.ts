@@ -3,8 +3,13 @@ import { getEnv } from "@/db";
 import { siteConfig } from "@/config/site";
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
-	const env = await getEnv();
-	const environment = (env as unknown as Record<string, string>).ENVIRONMENT ?? "uat";
+	let environment = "uat";
+	try {
+		const env = await getEnv();
+		environment = (env as unknown as Record<string, string>).ENVIRONMENT ?? "uat";
+	} catch {
+		// Dev/test environment — default to UAT (block indexing)
+	}
 	const baseUrl = siteConfig.url;
 
 	if (environment === "uat") {

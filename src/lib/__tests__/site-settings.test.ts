@@ -17,7 +17,7 @@ describe("site-settings", () => {
 			expect(settings.author).toBe("");
 			expect(settings.social).toEqual({ twitter: "", github: "", discord: "", instagram: "" });
 			expect(settings.productLinks).toEqual({ appUrl: "", appStoreUrl: "", playStoreUrl: "" });
-			expect(settings.features).toEqual({ waitlist: true, giveaway: true, blog: true, contact: true, pricing: false, changelog: false, api: false, doubleOptIn: false, maintenance: false });
+			expect(settings.features).toEqual({ waitlist: true, giveaway: true, blog: true, contact: true, pricing: false, changelog: false, api: false, doubleOptIn: false, maintenance: false, newsletter: false });
 			expect(settings.ui).toEqual({ search: true, themeToggle: true });
 			expect(settings.theme.preset).toBe("bold");
 			expect(settings.theme.accentColor).toBe("#9747ff");
@@ -66,7 +66,7 @@ describe("site-settings", () => {
 			expect(settings.name).toBe("Broken JSON");
 			// Falls back to defaults for invalid JSON
 			expect(settings.social).toEqual({ twitter: "", github: "", discord: "", instagram: "" });
-			expect(settings.features).toEqual({ waitlist: true, giveaway: true, blog: true, contact: true, pricing: false, changelog: false, api: false, doubleOptIn: false, maintenance: false });
+			expect(settings.features).toEqual({ waitlist: true, giveaway: true, blog: true, contact: true, pricing: false, changelog: false, api: false, doubleOptIn: false, maintenance: false, newsletter: false });
 			expect(settings.theme.preset).toBe("bold");
 			expect(settings.announcement).toEqual({ enabled: false, text: "", linkUrl: "", linkText: "" });
 		});
@@ -103,6 +103,44 @@ describe("site-settings", () => {
 			expect(settings.features.blog).toBe(false);
 			expect(settings.features.waitlist).toBe(false);
 			expect(settings.features.giveaway).toBe(true);
+		});
+
+		it("enforces mutual exclusion: enabling waitlist disables newsletter", async () => {
+			await updateSiteSettings({ features: { newsletter: true } });
+			let settings = await getSiteSettingsDirect();
+			expect(settings.features.newsletter).toBe(true);
+			expect(settings.features.waitlist).toBe(false);
+
+			await updateSiteSettings({ features: { waitlist: true } });
+			settings = await getSiteSettingsDirect();
+			expect(settings.features.waitlist).toBe(true);
+			expect(settings.features.newsletter).toBe(false);
+		});
+
+		it("enforces mutual exclusion: enabling newsletter disables waitlist", async () => {
+			await updateSiteSettings({ features: { waitlist: true } });
+			let settings = await getSiteSettingsDirect();
+			expect(settings.features.waitlist).toBe(true);
+
+			await updateSiteSettings({ features: { newsletter: true } });
+			settings = await getSiteSettingsDirect();
+			expect(settings.features.newsletter).toBe(true);
+			expect(settings.features.waitlist).toBe(false);
+		});
+
+		it("enforces mutual exclusion: waitlist wins when both sent in same call", async () => {
+			await updateSiteSettings({ features: { waitlist: true, newsletter: true } });
+			const settings = await getSiteSettingsDirect();
+			expect(settings.features.waitlist).toBe(true);
+			expect(settings.features.newsletter).toBe(false);
+		});
+
+		it("enforces mutual exclusion on insert fallback (no existing row)", async () => {
+			// Table is clean (beforeEach clears it), so this triggers insert fallback
+			await updateSiteSettings({ features: { newsletter: true } });
+			const settings = await getSiteSettingsDirect();
+			expect(settings.features.newsletter).toBe(true);
+			expect(settings.features.waitlist).toBe(false);
 		});
 
 		it("merges theme with existing values", async () => {

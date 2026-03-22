@@ -6,6 +6,7 @@ import type { RelatedPage } from "@/types/content";
 /** Maps route prefixes to their feature flag key */
 const ROUTE_FEATURE_MAP: Record<string, string> = {
 	"/waitlist": "waitlist",
+	"/newsletter": "newsletter",
 	"/giveaway": "giveaway",
 	"/blog": "blog",
 	"/contact": "contact",

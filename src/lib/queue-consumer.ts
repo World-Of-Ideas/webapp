@@ -1,6 +1,6 @@
 import type { EmailJob } from "./queue";
 import { sendEmail } from "./resend";
-import { generateUnsubscribeToken } from "./waitlist";
+import { generateUnsubscribeToken } from "./subscribers";
 
 /** Escape HTML special characters to prevent injection in email templates. */
 function escapeHtml(str: string): string {
@@ -61,14 +61,17 @@ export async function handleEmailQueue(
 					break;
 				}
 
-				case "giveaway_confirmation":
+				case "giveaway_confirmation": {
+					const giveawayHeaders = await buildUnsubscribeHeaders(job.payload.email, env);
 					await sendEmail(env.RESEND_API_KEY, {
 						from: env.FROM_EMAIL,
 						to: job.payload.email,
 						subject: "You're entered in the giveaway!",
 						html: `<p>You've been entered into the giveaway. Complete bonus actions to increase your chances!</p>`,
+						headers: giveawayHeaders,
 					});
 					break;
+				}
 
 				case "contact_receipt": {
 					const rawName = job.payload.name.replace(/[\r\n\t]/g, " ");
@@ -125,11 +128,42 @@ ${sourceLine}`,
 					await sendEmail(env.RESEND_API_KEY, {
 						from: env.FROM_EMAIL,
 						to: job.payload.email,
-						subject: "Verify your email to join the waitlist",
+						subject: "Verify your email to complete your signup",
 						html: `<p>Hi ${name},</p>
-<p>Please verify your email to complete your waitlist signup:</p>
+<p>Please verify your email to complete your signup:</p>
 <p><a href="${escapeHtml(verifyUrl)}">Verify Email</a></p>
 <p>If you didn't sign up, you can safely ignore this email.</p>`,
+					});
+					break;
+				}
+
+				case "newsletter_confirmation": {
+					const headers = await buildUnsubscribeHeaders(job.payload.email, env);
+					const name = escapeHtml(job.payload.name);
+					await sendEmail(env.RESEND_API_KEY, {
+						from: env.FROM_EMAIL,
+						to: job.payload.email,
+						subject: "Thanks for subscribing!",
+						html: `<p>Hi ${name},</p>
+<p>Thanks for subscribing to our newsletter! You'll receive our latest updates and news directly in your inbox.</p>`,
+						headers,
+					});
+					break;
+				}
+
+				case "newsletter_admin_notification": {
+					const name = escapeHtml(job.payload.name);
+					const email = escapeHtml(job.payload.email);
+					const sourceLine = job.payload.source
+						? `<p><strong>Source:</strong> ${escapeHtml(job.payload.source)}</p>`
+						: "";
+					await sendEmail(env.RESEND_API_KEY, {
+						from: env.FROM_EMAIL,
+						to: env.CONTACT_EMAIL,
+						subject: `New newsletter subscriber: ${escapeHtml(job.payload.name)}`,
+						html: `<p><strong>Name:</strong> ${name}</p>
+<p><strong>Email:</strong> ${email}</p>
+${sourceLine}`,
 					});
 					break;
 				}

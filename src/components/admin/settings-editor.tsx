@@ -102,7 +102,13 @@ export function SettingsEditor({ settings }: SettingsEditorProps) {
 	const router = useRouter();
 
 	function toggleFeature(key: string) {
-		setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
+		setFeatures((prev) => {
+			const updated = { ...prev, [key]: !prev[key] };
+			// Mutual exclusion: waitlist and newsletter cannot both be enabled
+			if (key === "waitlist" && updated.waitlist) updated.newsletter = false;
+			if (key === "newsletter" && updated.newsletter) updated.waitlist = false;
+			return updated;
+		});
 	}
 
 	function toggleUi(key: string) {

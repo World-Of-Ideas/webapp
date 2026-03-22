@@ -3,12 +3,13 @@ import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { getSiteSettings } from "@/lib/site-settings";
 import { ctaConfig } from "@/config/navigation";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
 import { getRecentPosts } from "@/lib/blog";
 import { getPageBySlug } from "@/lib/pages";
 import { ContentRenderer } from "@/components/content/content-renderer";
 import { JsonLd } from "@/components/shared/json-ld";
 import { PostCard } from "@/components/blog/post-card";
-import { SubscriberCount } from "@/components/waitlist/subscriber-count";
+import { SubscriberCount } from "@/components/shared/subscriber-count";
 import { FaqSection } from "@/components/layout/faq-section";
 import { RelatedPages } from "@/components/layout/related-pages";
 import { GradientBackground } from "@/components/shared/gradient-background";
@@ -40,19 +41,21 @@ export default async function HomePage() {
 	]);
 	const recentPosts = settings.features.blog ? await getRecentPosts(3) : [];
 
-	const isPreLaunch = settings.features.waitlist;
-	const cta = isPreLaunch ? ctaConfig.preLaunch : ctaConfig.postLaunch;
+	const mode = getSubscriberMode(settings.features);
+	const isPreLaunch = mode !== "off";
+	const cta = mode === "waitlist" ? ctaConfig.preLaunch : mode === "newsletter" ? ctaConfig.newsletter : ctaConfig.postLaunch;
 	const hasProductLink = !!(settings.productLinks.appUrl || settings.productLinks.appStoreUrl || settings.productLinks.playStoreUrl);
 	const showCta = isPreLaunch || hasProductLink;
 
 	const faqs = (homePage?.faqs ?? []) as FAQ[];
 	const relatedPages = (homePage?.relatedPages ?? []) as RelatedPage[];
 
+	const signupHref = mode === "waitlist" ? "/waitlist" : "/newsletter";
 	const heroButtons = (
 		<>
 			{isPreLaunch ? (
 				<Link
-					href="/waitlist"
+					href={signupHref}
 					className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
 				>
 					{cta.buttonText}
@@ -152,8 +155,8 @@ export default async function HomePage() {
 				</section>
 			)}
 
-			{/* Subscriber Count */}
-			{settings.features.waitlist && (
+			{/* Subscriber Count (waitlist only — shows position/social proof) */}
+			{mode === "waitlist" && (
 				<section className="px-6 py-8 text-center">
 					<SubscriberCount />
 				</section>

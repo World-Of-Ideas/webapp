@@ -64,6 +64,32 @@ describe("enqueueEmail", () => {
 		expect(queue.send).toHaveBeenCalledOnce();
 		expect(queue.send).toHaveBeenCalledWith(job);
 	});
+
+	it("works with newsletter_confirmation job type", async () => {
+		const queue = createMockQueue();
+		const job: EmailJob = {
+			type: "newsletter_confirmation",
+			payload: { email: "newsletter@test.com", name: "Dave" },
+		};
+
+		await enqueueEmail(queue, job);
+
+		expect(queue.send).toHaveBeenCalledOnce();
+		expect(queue.send).toHaveBeenCalledWith(job);
+	});
+
+	it("works with newsletter_admin_notification job type", async () => {
+		const queue = createMockQueue();
+		const job: EmailJob = {
+			type: "newsletter_admin_notification",
+			payload: { email: "newsletter@test.com", name: "Dave", source: "homepage" },
+		};
+
+		await enqueueEmail(queue, job);
+
+		expect(queue.send).toHaveBeenCalledOnce();
+		expect(queue.send).toHaveBeenCalledWith(job);
+	});
 });
 
 describe("enqueueEmailBatch", () => {

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { getSiteSettings } from "@/lib/site-settings";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
 
 export default async function NotFound() {
 	const settings = await getSiteSettings();
-	const hasWaitlist = settings.features.waitlist;
+	const mode = getSubscriberMode(settings.features);
 	const hasProductLinks =
 		settings.productLinks.appUrl ||
 		settings.productLinks.appStoreUrl ||
@@ -16,12 +17,19 @@ export default async function NotFound() {
 				Sorry, the page you are looking for does not exist or has been moved.
 			</p>
 			<div className="mt-8 flex items-center gap-4">
-				{hasWaitlist ? (
+				{mode === "waitlist" ? (
 					<Link
 						href="/waitlist"
 						className="rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
 					>
 						Join the Waitlist
+					</Link>
+				) : mode === "newsletter" ? (
+					<Link
+						href="/newsletter"
+						className="rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+					>
+						Subscribe to Newsletter
 					</Link>
 				) : hasProductLinks ? (
 					<>

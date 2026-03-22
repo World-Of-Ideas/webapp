@@ -28,7 +28,7 @@ INSERT OR REPLACE INTO site_settings (
   1, 'Product Name', 'One-line value proposition for your product.', 'Company Name',
   '{"twitter":"","github":"","discord":"","instagram":""}',
   '{"appUrl":"","appStoreUrl":"","playStoreUrl":""}',
-  '{"waitlist":true,"giveaway":true,"blog":true,"contact":true,"pricing":false,"changelog":false,"api":false}',
+  '{"waitlist":true,"giveaway":true,"blog":true,"contact":true,"pricing":false,"changelog":false,"api":false,"newsletter":true}',
   '{"search":true,"themeToggle":true}',
   '{"preset":"bold","accentColor":"#9747ff","borderRadius":"0.625rem","headingWeight":"400","fontFamily":"inter","heroVariant":"gradient","headerVariant":"blur","footerVariant":"simple","postCardVariant":"bordered","ctaSectionVariant":"gradient"}',
   NULL,

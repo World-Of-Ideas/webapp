@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
-import { getSubscriberCount } from "@/lib/waitlist";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
+import { getSubscriberCount } from "@/lib/subscribers";
 import { getPostCount } from "@/lib/blog";
 import { getContactCount } from "@/lib/contact";
 import { getSignupTrend, getContactTrend, getTopReferrers } from "@/lib/dashboard";
@@ -34,14 +35,16 @@ function StatsCard({
 
 export default async function DashboardPage() {
 	const settings = await getSiteSettingsDirect();
+	const mode = getSubscriberMode(settings.features);
+	const hasSubscribers = mode !== "off";
 
 	const [postCount, contactCount, subscriberCount, signupTrend, contactTrend, topReferrers] = await Promise.all([
 		settings.features.blog ? getPostCount() : Promise.resolve(0),
 		settings.features.contact ? getContactCount() : Promise.resolve(0),
-		settings.features.waitlist ? getSubscriberCount() : Promise.resolve(0),
-		settings.features.waitlist ? getSignupTrend(30) : Promise.resolve([]),
+		hasSubscribers ? getSubscriberCount() : Promise.resolve(0),
+		hasSubscribers ? getSignupTrend(30) : Promise.resolve([]),
 		settings.features.contact ? getContactTrend(30) : Promise.resolve([]),
-		settings.features.waitlist ? getTopReferrers(5) : Promise.resolve([]),
+		hasSubscribers ? getTopReferrers(5) : Promise.resolve([]),
 	]);
 
 	return (
@@ -49,7 +52,7 @@ export default async function DashboardPage() {
 			<h1 className="text-2xl font-bold">Dashboard</h1>
 
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-				{settings.features.waitlist && (
+				{hasSubscribers && (
 					<StatsCard title="Subscribers" value={subscriberCount} />
 				)}
 				{settings.features.blog && (
@@ -61,7 +64,7 @@ export default async function DashboardPage() {
 			</div>
 
 			<div className="grid gap-6 lg:grid-cols-2">
-				{settings.features.waitlist && (
+				{hasSubscribers && (
 					<Card>
 						<CardHeader>
 							<CardTitle className="text-sm font-medium">Signups (Last 30 Days)</CardTitle>
@@ -83,7 +86,7 @@ export default async function DashboardPage() {
 				)}
 			</div>
 
-			{settings.features.waitlist && topReferrers.length > 0 && (
+			{hasSubscribers && topReferrers.length > 0 && (
 				<Card>
 					<CardHeader>
 						<CardTitle className="text-sm font-medium">Top Referrers</CardTitle>

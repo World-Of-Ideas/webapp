@@ -4,7 +4,7 @@ import { apiSuccess, apiError, getClientIp } from "@/lib/api";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { generateReferralCode } from "@/lib/referral";
-import { createSubscriber, getSubscriberByEmail, createSubscriberWithReferral } from "@/lib/subscribers";
+import { createSubscriber, getSubscriberByEmail } from "@/lib/subscribers";
 import { enqueueEmail } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendMetaConversionEvent, sendGaConversionEvent } from "@/lib/tracking";
@@ -13,12 +13,12 @@ import { fireWebhooks } from "@/lib/webhooks";
 
 export async function POST(request: NextRequest) {
 	const settings = await getSiteSettingsDirect();
-	if (!settings.features.waitlist) {
+	if (!settings.features.newsletter) {
 		return apiError("NOT_FOUND", "Resource not found");
 	}
 
 	const ip = getClientIp(request);
-	if (!checkRateLimit(`waitlist:${ip}`, 5, 60 * 1000)) {
+	if (!checkRateLimit(`newsletter:${ip}`, 5, 60 * 1000)) {
 		return apiError("RATE_LIMITED", "Too many requests. Please try again later.");
 	}
 
@@ -28,11 +28,10 @@ export async function POST(request: NextRequest) {
 	}
 
 	try {
-		const { email, name, turnstileToken, ref, source } = body as {
+		const { email, name, turnstileToken, source } = body as {
 			email?: string;
 			name?: string;
 			turnstileToken?: string;
-			ref?: string;
 			source?: string;
 		};
 
@@ -46,8 +45,7 @@ export async function POST(request: NextRequest) {
 
 		const lengthErr =
 			validateLength(name, "Name", 100) ??
-			validateLength(source, "Source", 255) ??
-			validateLength(ref, "Referral code", 20);
+			validateLength(source, "Source", 255);
 		if (lengthErr) {
 			return apiError("VALIDATION_ERROR", lengthErr);
 		}
@@ -62,13 +60,11 @@ export async function POST(request: NextRequest) {
 			return apiError("TURNSTILE_FAILED", "Turnstile verification failed");
 		}
 
-		// Check double opt-in feature flag
 		const isDoubleOptIn = !!settings.features.doubleOptIn;
 
 		// Check for existing subscriber
 		const existing = await getSubscriberByEmail(email);
 		if (existing) {
-			// If double opt-in and subscriber is pending, resend verification email
 			if (isDoubleOptIn && existing.status === "pending") {
 				try {
 					await enqueueEmail(env.EMAIL_QUEUE, {
@@ -78,9 +74,9 @@ export async function POST(request: NextRequest) {
 				} catch {
 					// Queue may not be available in local dev
 				}
-				return apiSuccess({ referralCode: existing.referralCode, existing: true });
+				return apiSuccess({ existing: true });
 			}
-			return apiSuccess({ referralCode: existing.referralCode, existing: true });
+			return apiSuccess({ existing: true });
 		}
 
 		// Retry loop handles both email duplicate (concurrent) and referral code collision
@@ -89,31 +85,20 @@ export async function POST(request: NextRequest) {
 			const referralCode = generateReferralCode();
 			try {
 				const status = isDoubleOptIn ? "pending" : undefined;
-				subscriber = ref
-					? await createSubscriberWithReferral({
-						email,
-						name,
-						referralCode,
-						referredBy: ref,
-						source,
-						status,
-					})
-					: await createSubscriber({
-						email,
-						name,
-						referralCode,
-						source,
-						status,
-					});
+				subscriber = await createSubscriber({
+					email,
+					name,
+					referralCode,
+					source,
+					status,
+				});
 				break;
 			} catch (err) {
 				if (err instanceof Error && err.message.includes("UNIQUE constraint failed")) {
-					// Check if it's an email duplicate (concurrent signup)
 					const existingSub = await getSubscriberByEmail(email);
 					if (existingSub) {
-						return apiSuccess({ referralCode: existingSub.referralCode, existing: true });
+						return apiSuccess({ existing: true });
 					}
-					// Otherwise it's a referral code collision — retry with new code
 					if (attempt === 2) throw err;
 					continue;
 				}
@@ -122,7 +107,7 @@ export async function POST(request: NextRequest) {
 		}
 		if (!subscriber) throw new Error("Failed to create subscriber");
 
-		// Queue confirmation or verification email depending on double opt-in
+		// Queue confirmation or verification email
 		try {
 			if (isDoubleOptIn) {
 				await enqueueEmail(env.EMAIL_QUEUE, {
@@ -131,40 +116,28 @@ export async function POST(request: NextRequest) {
 				});
 			} else {
 				await enqueueEmail(env.EMAIL_QUEUE, {
-					type: "waitlist_confirmation",
-					payload: {
-						email,
-						name,
-						position: subscriber.position,
-						referralCode: subscriber.referralCode,
-					},
+					type: "newsletter_confirmation",
+					payload: { email, name },
 				});
 			}
 		} catch {
-			// Queue may not be available in local dev — don't fail the signup
+			// Queue may not be available in local dev
 		}
 
 		// Queue admin notification
 		try {
 			await enqueueEmail(env.EMAIL_QUEUE, {
-				type: "waitlist_admin_notification",
-				payload: {
-					email,
-					name,
-					position: subscriber.position,
-					source: source ?? undefined,
-				},
+				type: "newsletter_admin_notification",
+				payload: { email, name, source: source ?? undefined },
 			});
 		} catch {
 			// Queue may not be available in local dev
 		}
 
 		// Fire webhooks (fire-and-forget)
-		fireWebhooks("waitlist.signup", {
+		fireWebhooks("newsletter.signup", {
 			email,
 			name,
-			position: subscriber.position,
-			referralCode: subscriber.referralCode,
 			source: source ?? null,
 		}).catch(() => {});
 
@@ -187,7 +160,7 @@ export async function POST(request: NextRequest) {
 			sourceUrl: request.url,
 		}).catch(() => {});
 
-		return apiSuccess({ referralCode: subscriber.referralCode, position: subscriber.position, eventId }, 201);
+		return apiSuccess({ eventId }, 201);
 	} catch {
 		return apiError("INTERNAL_ERROR", "An unexpected error occurred");
 	}

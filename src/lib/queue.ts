@@ -5,7 +5,9 @@ export type EmailJob =
 	| { type: "contact_receipt"; payload: { name: string; email: string; message: string } }
 	| { type: "waitlist_admin_notification"; payload: { email: string; name: string; position: number; source?: string } }
 	| { type: "campaign_email"; payload: { to: string; subject: string; html: string } }
-	| { type: "email_verification"; payload: { email: string; name: string } };
+	| { type: "email_verification"; payload: { email: string; name: string } }
+	| { type: "newsletter_confirmation"; payload: { email: string; name: string } }
+	| { type: "newsletter_admin_notification"; payload: { email: string; name: string; source?: string } };
 
 export async function enqueueEmail(queue: Queue, job: EmailJob): Promise<void> {
 	await queue.send(job);

@@ -4,7 +4,7 @@ import { apiSuccess, apiError, getClientIp } from "@/lib/api";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { createGiveawayEntry, getGiveawayEntryByEmail, isGiveawayEnded } from "@/lib/giveaway";
-import { getSubscriberByEmail } from "@/lib/waitlist";
+import { getSubscriberByEmail } from "@/lib/subscribers";
 import { getPageBySlug } from "@/lib/pages";
 import { enqueueEmail } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";

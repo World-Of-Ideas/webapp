@@ -1,7 +1,17 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 // Public forms don't need admin auth
 test.use({ storageState: { cookies: [], origins: [] } });
+
+/** Wait for Turnstile widget to auto-resolve (always-pass test key in dev) */
+async function waitForTurnstile(page: Page) {
+	// The Turnstile iframe loads and fires onSuccess; wait for the response input
+	await page.locator("iframe[src*='challenges.cloudflare.com']").waitFor({ state: "attached", timeout: 10_000 }).catch(() => {
+		// Turnstile may not render an iframe with interaction-only + always-pass key
+	});
+	// Give the callback time to fire and update React state
+	await page.waitForTimeout(1500);
+}
 
 // ─── Waitlist ──────────────────────────────────────────────────
 
@@ -9,14 +19,15 @@ test.describe("Waitlist signup", () => {
 	test("shows signup form on /waitlist", async ({ page }) => {
 		await page.goto("/waitlist");
 		await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-		await expect(page.getByPlaceholder(/email/i)).toBeVisible();
-		await expect(page.getByPlaceholder(/name/i)).toBeVisible();
+		await expect(page.getByLabel(/email/i)).toBeVisible();
+		await expect(page.getByLabel(/name/i)).toBeVisible();
 	});
 
 	test("validates empty email", async ({ page }) => {
 		await page.goto("/waitlist");
-		// Try submitting without filling form
-		const submitButton = page.getByRole("button", { name: /join|sign up|submit/i });
+		// Scope to the signup form to avoid matching FAQ accordion buttons
+		const form = page.locator("form");
+		const submitButton = form.getByRole("button", { name: /join|sign up|submit/i });
 		if (await submitButton.isVisible()) {
 			await submitButton.click();
 			// Should show validation error or remain on page
@@ -28,12 +39,12 @@ test.describe("Waitlist signup", () => {
 		await page.goto("/waitlist");
 
 		const email = `e2e-${Date.now()}@example.com`;
-		await page.getByPlaceholder(/email/i).fill(email);
-		await page.getByPlaceholder(/name/i).fill("E2E Test User");
+		await page.getByLabel(/email/i).fill(email);
+		await page.getByLabel(/name/i).fill("E2E Test User");
 
-		// Wait for Turnstile to resolve
-		const submitButton = page.getByRole("button", { name: /join|sign up|submit/i });
-		await expect(submitButton).toBeEnabled({ timeout: 10_000 });
+		await waitForTurnstile(page);
+		const form = page.locator("form");
+		const submitButton = form.getByRole("button", { name: /join|sign up|submit/i });
 		await submitButton.click();
 
 		// Should show success (position number or thank you message)
@@ -43,15 +54,16 @@ test.describe("Waitlist signup", () => {
 	test("prevents duplicate email signup", async ({ page }) => {
 		// Use the seeded email from seed.sql
 		await page.goto("/waitlist");
-		await page.getByPlaceholder(/email/i).fill("alice@example.com");
-		await page.getByPlaceholder(/name/i).fill("Alice Duplicate");
+		await page.getByLabel(/email/i).fill("alice@example.com");
+		await page.getByLabel(/name/i).fill("Alice Duplicate");
 
-		const submitButton = page.getByRole("button", { name: /join|sign up|submit/i });
-		await expect(submitButton).toBeEnabled({ timeout: 10_000 });
+		await waitForTurnstile(page);
+		const form = page.locator("form");
+		const submitButton = form.getByRole("button", { name: /join|sign up|submit/i });
 		await submitButton.click();
 
-		// Should show duplicate/already registered message
-		await expect(page.getByText(/already|duplicate|exists|registered/i)).toBeVisible({ timeout: 10_000 });
+		// Existing subscribers are redirected to their referral dashboard
+		await expect(page).toHaveURL(/waitlist\/[a-z0-9]+/i, { timeout: 20_000 });
 	});
 });
 
@@ -67,30 +79,73 @@ test.describe("Waitlist referral", () => {
 	});
 });
 
+// ─── Newsletter ───────────────────────────────────────────────
+
+test.describe("Newsletter signup", () => {
+	test("shows signup form on /newsletter", async ({ page }) => {
+		await page.goto("/newsletter");
+		await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+		await expect(page.getByLabel(/email/i)).toBeVisible();
+		await expect(page.getByLabel(/name/i)).toBeVisible();
+	});
+
+	test("submits newsletter form successfully", async ({ page }) => {
+		await page.goto("/newsletter");
+
+		const email = `newsletter-${Date.now()}@example.com`;
+		await page.getByLabel(/email/i).fill(email);
+		await page.getByLabel(/name/i).fill("E2E Newsletter User");
+
+		await waitForTurnstile(page);
+		const form = page.locator("form");
+		const submitButton = form.getByRole("button", { name: /subscribe|submit/i });
+		await submitButton.click();
+
+		// Should show success message (form replaced by "Thanks for subscribing!")
+		await expect(page.getByText("Thanks for subscribing!")).toBeVisible({ timeout: 10_000 });
+	});
+
+	test("prevents duplicate email signup", async ({ page }) => {
+		// Use the seeded email from seed.sql
+		await page.goto("/newsletter");
+		await page.getByLabel(/email/i).fill("alice@example.com");
+		await page.getByLabel(/name/i).fill("Alice Duplicate");
+
+		await waitForTurnstile(page);
+		const form = page.locator("form");
+		const submitButton = form.getByRole("button", { name: /subscribe|submit/i });
+		await submitButton.click();
+
+		// Should show success (existing subscriber returns ok — same success state)
+		await expect(page.getByText("Thanks for subscribing!")).toBeVisible({ timeout: 10_000 });
+	});
+});
+
 // ─── Contact Form ──────────────────────────────────────────────
 
 test.describe("Contact form", () => {
 	test("shows contact form on /contact", async ({ page }) => {
 		await page.goto("/contact");
-		await expect(page.getByRole("heading", { name: /contact/i })).toBeVisible();
-		await expect(page.getByPlaceholder(/name/i)).toBeVisible();
-		await expect(page.getByPlaceholder(/email/i)).toBeVisible();
-		await expect(page.getByPlaceholder(/message/i)).toBeVisible();
+		await expect(page.getByRole("heading", { level: 1, name: /contact/i })).toBeVisible();
+		await expect(page.getByLabel(/name/i)).toBeVisible();
+		await expect(page.getByLabel(/email/i)).toBeVisible();
+		await expect(page.getByLabel(/message/i)).toBeVisible();
 	});
 
 	test("submits contact form successfully", async ({ page }) => {
 		await page.goto("/contact");
 
-		await page.getByPlaceholder(/name/i).fill("E2E Contact");
-		await page.getByPlaceholder(/email/i).fill(`contact-${Date.now()}@example.com`);
-		await page.getByPlaceholder(/message/i).fill("This is an E2E test message for the contact form.");
+		await page.getByLabel(/name/i).fill("E2E Contact");
+		await page.getByLabel(/email/i).fill(`contact-${Date.now()}@example.com`);
+		await page.getByLabel(/message/i).fill("This is an E2E test message for the contact form.");
 
-		const submitButton = page.getByRole("button", { name: /send|submit/i });
-		await expect(submitButton).toBeEnabled({ timeout: 10_000 });
+		await waitForTurnstile(page);
+		const form = page.locator("form");
+		const submitButton = form.getByRole("button", { name: /send|submit/i });
 		await submitButton.click();
 
-		// Should show success
-		await expect(page.getByText(/thank|sent|success|received/i)).toBeVisible({ timeout: 10_000 });
+		// Should show success (form replaced by "Message Sent")
+		await expect(page.getByText("Message Sent")).toBeVisible({ timeout: 10_000 });
 	});
 });
 
@@ -104,7 +159,7 @@ test.describe("Giveaway entry", () => {
 
 	test("shows entry form with email field", async ({ page }) => {
 		await page.goto("/giveaway");
-		const emailField = page.getByPlaceholder(/email/i);
+		const emailField = page.getByLabel(/email/i);
 		// If giveaway is active, form should be visible
 		if (await emailField.isVisible({ timeout: 3_000 }).catch(() => false)) {
 			await expect(emailField).toBeVisible();
@@ -153,11 +208,12 @@ test.describe("Blog public pages", () => {
 	});
 
 	test("blog post page loads with seeded content", async ({ page }) => {
-		await page.goto("/blog/getting-started");
+		await page.goto("/blog/getting-started-with-our-product");
 		await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 		// Should have breadcrumbs
-		await expect(page.getByText("Home")).toBeVisible();
-		await expect(page.getByText("Blog")).toBeVisible();
+		const breadcrumb = page.locator("nav[aria-label='Breadcrumb']");
+		await expect(breadcrumb.getByText("Home")).toBeVisible();
+		await expect(breadcrumb.getByText("Blog")).toBeVisible();
 	});
 
 	test("blog RSS feed returns valid XML", async ({ page }) => {
@@ -183,7 +239,8 @@ test.describe("SEO", () => {
 		const response = await page.request.get("/robots.txt");
 		expect(response.ok()).toBeTruthy();
 		const body = await response.text();
-		expect(body).toContain("User-agent");
+		// Next.js metadata route generates "User-agent" or "user-agent" depending on version
+		expect(body.toLowerCase()).toContain("user-agent");
 	});
 
 	test("home page has JSON-LD", async ({ page }) => {

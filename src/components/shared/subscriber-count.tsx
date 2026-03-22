@@ -1,4 +1,4 @@
-import { getSubscriberCount } from "@/lib/waitlist";
+import { getSubscriberCount } from "@/lib/subscribers";
 
 export async function SubscriberCount() {
 	const count = await getSubscriberCount();

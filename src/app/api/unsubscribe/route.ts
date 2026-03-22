@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { apiSuccess, apiError, getClientIp } from "@/lib/api";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { getSubscriberByEmail, unsubscribe, verifyUnsubscribeToken } from "@/lib/waitlist";
+import { getSubscriberByEmail, unsubscribe, verifyUnsubscribeToken } from "@/lib/subscribers";
 
 export async function GET(request: NextRequest) {
 	const ip = getClientIp(request);

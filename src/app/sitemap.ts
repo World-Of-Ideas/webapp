@@ -32,6 +32,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		});
 	}
 
+	if (settings.features.newsletter) {
+		entries.push({
+			url: `${baseUrl}/newsletter`,
+			lastModified: new Date(),
+			changeFrequency: "monthly",
+			priority: 0.8,
+		});
+	}
+
 	if (settings.features.giveaway) {
 		entries.push({
 			url: `${baseUrl}/giveaway`,

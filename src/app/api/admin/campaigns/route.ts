@@ -2,14 +2,20 @@ import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
 import { getCampaigns, createCampaign } from "@/lib/campaigns";
 import { validateCampaignBody } from "@/lib/validation";
+
+async function requireSubscriberFeature() {
+	const settings = await getSiteSettingsDirect();
+	return getSubscriberMode(settings.features) !== "off";
+}
 
 export async function GET() {
 	if (!(await requireAdminSession())) {
 		return apiError("UNAUTHORIZED", "Not authenticated");
 	}
-	if (!(await getSiteSettingsDirect()).features.waitlist) {
+	if (!(await requireSubscriberFeature())) {
 		return apiError("NOT_FOUND", "Feature not available");
 	}
 
@@ -21,7 +27,7 @@ export async function POST(request: NextRequest) {
 	if (!(await requireAdminSession())) {
 		return apiError("UNAUTHORIZED", "Not authenticated");
 	}
-	if (!(await getSiteSettingsDirect()).features.waitlist) {
+	if (!(await requireSubscriberFeature())) {
 		return apiError("NOT_FOUND", "Feature not available");
 	}
 

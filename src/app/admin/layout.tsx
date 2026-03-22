@@ -3,22 +3,26 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { validateSession } from "@/lib/admin";
 import { getSiteSettingsDirect } from "@/lib/site-settings";
+import { getSubscriberMode } from "@/lib/subscriber-mode";
 import { LogoutButton } from "@/components/admin/logout-button";
 import { cn } from "@/lib/utils";
 
 interface AdminSidebarLink {
 	label: string;
 	href: string;
+	/** Single feature flag — link shown when this feature is enabled. */
 	feature?: string;
+	/** Requires any subscriber mode (waitlist or newsletter). */
+	requireSubscribers?: boolean;
 }
 
 const sidebarLinks: AdminSidebarLink[] = [
 	{ label: "Dashboard", href: "/admin/dashboard" },
 	{ label: "Posts", href: "/admin/posts", feature: "blog" },
 	{ label: "Pages", href: "/admin/pages" },
-	{ label: "Subscribers", href: "/admin/subscribers", feature: "waitlist" },
+	{ label: "Subscribers", href: "/admin/subscribers", requireSubscribers: true },
 	{ label: "Contacts", href: "/admin/contacts", feature: "contact" },
-	{ label: "Campaigns", href: "/admin/campaigns", feature: "waitlist" },
+	{ label: "Campaigns", href: "/admin/campaigns", requireSubscribers: true },
 	{ label: "Giveaway", href: "/admin/giveaway", feature: "giveaway" },
 	{ label: "Assets", href: "/admin/assets" },
 	{ label: "Webhooks", href: "/admin/webhooks" },
@@ -57,10 +61,12 @@ export default async function AdminLayout({
 	}
 
 	const settings = await getSiteSettingsDirect();
+	const hasSubscribers = getSubscriberMode(settings.features) !== "off";
 
-	const visibleLinks = sidebarLinks.filter(
-		(link) => !link.feature || settings.features[link.feature],
-	);
+	const visibleLinks = sidebarLinks.filter((link) => {
+		if (link.requireSubscribers) return hasSubscribers;
+		return !link.feature || settings.features[link.feature];
+	});
 
 	return (
 		<div className="flex min-h-screen">

@@ -8,7 +8,7 @@ import {
 	getGiveawayEntries,
 	getGiveawayStats,
 } from "../giveaway";
-import { createSubscriber } from "../waitlist";
+import { createSubscriber } from "../subscribers";
 
 describe("giveaway (integration)", () => {
 	beforeEach(async () => {

@@ -41,9 +41,9 @@ export async function generateMetadata({
 			publishedTime: post.publishedAt ?? undefined,
 			modifiedTime: post.updatedAt ?? undefined,
 			authors: [post.author],
-			...(post.coverImage && {
-				images: [{ url: post.coverImage }],
-			}),
+			images: post.coverImage
+				? [{ url: post.coverImage }]
+				: [{ url: "/og-default.png", width: 1200, height: 630 }],
 		},
 		alternates: {
 			canonical: `${siteConfig.url}/blog/${slug}`,

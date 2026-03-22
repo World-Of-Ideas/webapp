@@ -18,6 +18,7 @@ export interface HeaderCtaButton {
 
 export const headerLinks: NavLink[] = [
 	{ label: "Waitlist", href: "/waitlist", feature: "waitlist" },
+	{ label: "Newsletter", href: "/newsletter", feature: "newsletter" },
 	{ label: "Giveaway", href: "/giveaway", feature: "giveaway" },
 	{ label: "Pricing", href: "/pricing", feature: "pricing" },
 	{ label: "Blog", href: "/blog", feature: "blog" },
@@ -35,6 +36,7 @@ export const footerGroups: FooterGroup[] = [
 		title: "Product",
 		links: [
 			{ label: "Waitlist", href: "/waitlist", feature: "waitlist" },
+			{ label: "Newsletter", href: "/newsletter", feature: "newsletter" },
 			{ label: "Giveaway", href: "/giveaway", feature: "giveaway" },
 			{ label: "Pricing", href: "/pricing", feature: "pricing" },
 		],
@@ -59,6 +61,7 @@ export const footerGroups: FooterGroup[] = [
 export const breadcrumbLabels: Record<string, string> = {
 	"": "Home",
 	waitlist: "Waitlist",
+	newsletter: "Newsletter",
 	giveaway: "Giveaway",
 	pricing: "Pricing",
 	blog: "Blog",
@@ -75,6 +78,11 @@ export const ctaConfig = {
 		heading: "Join the Waitlist",
 		description: "Be the first to know when we launch.",
 		buttonText: "Join Waitlist",
+	},
+	newsletter: {
+		heading: "Subscribe to Our Newsletter",
+		description: "Stay updated with the latest news and updates.",
+		buttonText: "Subscribe",
 	},
 	postLaunch: {
 		heading: "Get Started",
